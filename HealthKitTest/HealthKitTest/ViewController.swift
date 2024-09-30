@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.fetchWeight()
+                self.requestRateStatistics()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -65,6 +65,7 @@ class ViewController: UIViewController {
             print("max: ", max)
             print("min: ", min)
         }
+ 
     }
     
     func requestStep() {
@@ -78,17 +79,24 @@ class ViewController: UIViewController {
             if let error = error {
                 print("Error fetching workouts: \(error.localizedDescription)")
             } else if let workouts = workouts {
+                let calendar = Calendar.current
+                
                 for workout in workouts {
                     print("운동 종류: ", workout.workoutActivityType.name)
-                    print("startDate: ", workout.startDate)
-                    print("endDate: ", workout.endDate)
-                    print("duration: ", workout.duration)
-                    print("이전 칼로리: ", workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0)
-                    print("이전 칼로리2: ", workout.totalEnergyBurned)
+                   
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate)
+                    
+                    print("startDate: ", koreanStartDate)
+                    print("endDate: ", koreanEndDate)
+                    
+                    //print("duration: ", workout.duration)
+                    print("운동 칼로리: ", workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0)
+                    //print("이전 칼로리2: ", workout.totalEnergyBurned)
                     if #available(iOS 16.0, *) {
-                        self.healthKitManager.fetchCalories(for: workout) { cal in
+                        //self.healthKitManager.fetchCalories(for: workout) { cal in
                             //print("칼로리: ", cal)
-                        }
+                        //}
                     } else {
                         // Fallback on earlier versions
                     }
@@ -106,9 +114,9 @@ class ViewController: UIViewController {
             
             for sample in samples ?? [] {
                 let glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
-                print("Blood Glucose: \(glucose)")
                 let startDate = sample.startDate
                 let endDate = sample.endDate
+                print("Blood Glucose: \(glucose)", "startDate: \(startDate)")
             }
         }
     }

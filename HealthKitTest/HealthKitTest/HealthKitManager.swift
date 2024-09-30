@@ -78,6 +78,7 @@ extension HealthKitManager {
         let endDate = Date()
         guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
         
+        
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
         
@@ -248,7 +249,7 @@ extension HealthKitManager {
     func fetchWeeklyWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
         let calendar = Calendar.current
         let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -70, to: now) else {
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
             completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
             return
         }
