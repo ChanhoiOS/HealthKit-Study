@@ -61,11 +61,14 @@ class ViewController: UIViewController {
     }
     
     func requestRateStatistics() {
-        healthKitManager.fetchHeartRateStatistics { max, min, error in
-            print("max: ", max)
-            print("min: ", min)
+        healthKitManager.fetchHeartRateStatistics { result, error in
+            let maxHeartRate = result?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
+            let minHeartRate = result?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
+            let startDate = result?.startDate ?? Date()
+            let endDate = result?.endDate ?? Date()
+            
+            print("maxHeartRate: \(maxHeartRate)", "minHeartRate: \(minHeartRate)", "startDate: \(startDate)", "endDate: \(endDate)")
         }
- 
     }
     
     func requestStep() {

@@ -89,23 +89,27 @@ extension HealthKitManager {
         healthStore.execute(query)
     }
     
-    func fetchHeartRateStatistics(completion: @escaping (Double?, Double?, Error?) -> Void) {
+    func fetchHeartRateStatistics(completion: @escaping (HKStatistics?, Error?) -> Void) {
         let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
         let calendar = Calendar.current
         let endDate = Date()
         
-        guard let startDate = calendar.date(byAdding: .day, value: -1, to: endDate) else { return }
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+//        guard let startDate = calendar.date(byAdding: .hour, value: -14, to: endDate) else { return }
+//        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+//        
+        let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)  // 오늘 00시
+        let predicate = HKQuery.predicateForSamples(withStart: startOfToday, end: now, options: .strictStartDate)
         
         let query = HKStatisticsQuery(quantityType: heartRateType, quantitySamplePredicate: predicate, options: [.discreteMax, .discreteMin]) { (query, result, error) in
             if let error = error {
-                completion(nil, nil, error)
+                completion(nil, error)
                 return
             }
             
             let maxHeartRate = result?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
             let minHeartRate = result?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
-            completion(maxHeartRate, minHeartRate, nil)
+            completion(result, nil)
         }
         
         healthStore.execute(query)
