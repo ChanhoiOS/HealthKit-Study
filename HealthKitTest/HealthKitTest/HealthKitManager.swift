@@ -68,6 +68,27 @@ extension HealthKitManager {
         
         healthStore.execute(query)
     }
+    
+    func fetchRecentOxygenSaturation(completion: @escaping (HKQuantitySample?, Error?) -> Void) {
+        let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
+
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        let query = HKSampleQuery(sampleType: oxygenSaturationType, predicate: nil, limit: 1, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+
+            guard let sample = samples?.first as? HKQuantitySample else {
+                completion(nil, nil)
+                return
+            }
+
+            completion(sample, nil)
+        }
+
+        healthStore.execute(query)
+    }
 }
 
 extension HealthKitManager {

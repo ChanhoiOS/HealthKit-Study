@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.requestRateStatistics()
+                self.reqeustRecentOxygenSaturation()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -39,6 +39,14 @@ class ViewController: UIViewController {
             
             print("min: \(String(describing: min))", "max: \(String(describing: max))", "avg: \(String(describing: avg))")
             print("startDate: \(String(describing: result?.startDate))", print("endDate: \(String(describing: result?.endDate))"))
+        }
+    }
+    
+    func reqeustRecentOxygenSaturation() {
+        healthKitManager.fetchRecentOxygenSaturation { sample, error in
+            print("data: ", sample?.quantity.doubleValue(for: HKUnit.percent()))
+            print("startDate: ", sample?.startDate)
+            print("endDate: ", sample?.endDate)
         }
     }
     
