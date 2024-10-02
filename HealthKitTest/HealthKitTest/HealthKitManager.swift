@@ -21,18 +21,17 @@ class HealthKitManager {
         }
 
         let readTypes: Set<HKObjectType> = [
-            HKObjectType.quantityType(forIdentifier: .stepCount)!,
-            HKObjectType.quantityType(forIdentifier: .bodyMass)!,
-            HKObjectType.quantityType(forIdentifier: .bloodGlucose)!,
-            HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!,
-            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!,
-            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-            HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!,
-            HKObjectType.workoutType(),
-            HKSeriesType.workoutRoute(),
-            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!,
-            HKQuantityType.quantityType(forIdentifier: .heartRate)!,
-            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)!
+            HKObjectType.quantityType(forIdentifier: .stepCount)!, // 걸음
+            HKObjectType.quantityType(forIdentifier: .bodyMass)!, // 체중
+            HKObjectType.quantityType(forIdentifier: .bloodGlucose)!, // 혈당
+            HKObjectType.quantityType(forIdentifier: .bloodPressureSystolic)!, // 수축기 혈압
+            HKObjectType.quantityType(forIdentifier: .bloodPressureDiastolic)!, // 이완기 혈압
+            HKObjectType.quantityType(forIdentifier: .activeEnergyBurned)!, // 활동 에너지
+            HKObjectType.quantityType(forIdentifier: .appleExerciseTime)!, // 운동 시간
+            HKObjectType.workoutType(), // 운동
+            HKSeriesType.workoutRoute(), // 운동 경로
+            HKQuantityType.quantityType(forIdentifier: .heartRate)!, // 심박수
+            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)! // 혈중 산소
         ]
 
         healthStore.requestAuthorization(toShare: nil, read: readTypes) { success , error in
