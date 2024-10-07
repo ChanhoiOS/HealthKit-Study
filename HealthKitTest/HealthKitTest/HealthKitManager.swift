@@ -66,8 +66,7 @@ extension HealthKitManager {
         guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-
+        
         let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (query, result, error) in
            
             if let result = result, let sum = result.sumQuantity() {
@@ -119,6 +118,64 @@ extension HealthKitManager {
         }
         
         healthStore.execute(stepsCumulativeQuery)
+    }
+}
+
+// MARK: 몸무게
+extension HealthKitManager {
+    func getAllWeight(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        guard let bodyWeightType = HKSampleType.quantityType(forIdentifier: .bodyMass) else {
+            completion(nil, NSError(domain: "HealthKit", code: 1, userInfo: [NSLocalizedDescriptionKey: "Body weight type not available"]))
+            return
+        }
+        
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        
+        let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        let query = HKSampleQuery(sampleType: bodyWeightType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            guard let samples = samples as? [HKQuantitySample], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(samples, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getRecentWeight(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        guard let bodyWeightType = HKSampleType.quantityType(forIdentifier: .bodyMass) else {
+            completion(nil, NSError(domain: "HealthKit", code: 1, userInfo: [NSLocalizedDescriptionKey: "Body weight type not available"]))
+            return
+        }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -3000, to: now) else { return }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        let query = HKSampleQuery(sampleType: bodyWeightType,
+                                  predicate: predicate,
+                                  limit: HKObjectQueryNoLimit,
+                                  sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            guard let samples = samples as? [HKQuantitySample], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(samples, error)
+        }
+                
+        healthStore.execute(query)
     }
 }
 
@@ -327,43 +384,6 @@ extension HealthKitManager {
                 print("칼로리: ", totalCalories)
             }
             completion(totalCalories)
-        }
-        
-        healthStore.execute(query)
-    }
-}
-
-extension HealthKitManager {
-    func fetchBodyWeight(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
-        guard let bodyWeightType = HKSampleType.quantityType(forIdentifier: .bodyMass) else {
-            completion(nil, NSError(domain: "HealthKit", code: 1, userInfo: [NSLocalizedDescriptionKey: "Body weight type not available"]))
-            return
-        }
-        
-        let calendar = Calendar.current
-        var dateComponents = DateComponents()
-        dateComponents.day = 1
-        
-        let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
-            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
-            return
-        }
-        
-        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
-        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
-        let anchorDate = calendar.date(from: anchorComponents)!
-        
-        let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-        
-        let query = HKSampleQuery(sampleType: bodyWeightType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
-            guard let samples = samples as? [HKQuantitySample], error == nil else {
-                completion(nil, error)
-                return
-            }
-            
-            completion(samples, nil)
         }
         
         healthStore.execute(query)

@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.requestTotalStep()
+                self.getRecentWeight()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -50,6 +50,39 @@ extension ViewController {
     func requestTodayStep() {
         healthKitManager.getTodayStep { count in
             print("count: ", count)
+        }
+    }
+}
+
+//MARK: 몸무게
+extension ViewController {
+    func getAllWeight() {
+        healthKitManager.getAllWeight { samples, error in
+            let calendar = Calendar.current
+            
+            if let error = error {
+                print("Error fetching weight samples: \(error)")
+                return
+            }
+            
+            for sample in samples ?? [] {
+                let weight = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+                let startDate = sample.startDate
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: startDate)
+                print("weight: \(weight)", "startData: \(koreanStartDate)")
+            }
+        }
+    }
+    
+    func getRecentWeight() {
+        healthKitManager.getRecentWeight { samples, error in
+            if let samples = samples {
+                for sample in samples {
+                    print("weight StartDate: ", sample.startDate)
+                    print("weight EndDate: ", sample.endDate)
+                    print("weight kilo: ", sample.quantity.doubleValue(for: .gramUnit(with: .kilo)))
+                }
+            }
         }
     }
 }
@@ -173,23 +206,7 @@ extension ViewController {
         }
     }
     
-    func fetchWeight() {
-        healthKitManager.fetchBodyWeight { samples, error in
-            let calendar = Calendar.current
-            
-            if let error = error {
-                print("Error fetching weight samples: \(error)")
-                return
-            }
-            
-            for sample in samples ?? [] {
-                let weight = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-                let startDate = sample.startDate
-                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: startDate)
-                print("weight: \(weight)", "startData: \(koreanStartDate)")
-            }
-        }
-    }
+    
 }
 
 extension HKWorkoutActivityType {
