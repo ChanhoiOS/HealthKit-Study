@@ -11,7 +11,7 @@ import HealthKit
 class ViewController: UIViewController {
     
     var healthKitManager = HealthKitManager.shared
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -21,12 +21,40 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.reqeustRecentOxygenSaturation()
+                self.requestTotalStep()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
         }
     }
+}
+
+//MARK: 걸음수
+extension ViewController {
+    // HKStatisticsCollectionQuery 를 사용한 날짜별 걸음수
+    func requestStep() {
+        healthKitManager.getStepCountPerDay(beforeDays: 14) { success, date, count in
+            print("걸은 날짜: ", date)
+            print("걸음 수: ", count)
+        }
+    }
+    
+    func requestTotalStep() {
+        healthKitManager.getTotalStep { sample, error in
+            print("걸음 시작 날짜: ", sample?.startDate)
+            print("걸음 마지막 날짜: ", sample?.endDate)
+            print("데이터 시작 날짜: ", sample?.sumQuantity()?.doubleValue(for: HKUnit.count()))
+        }
+    }
+    
+    func requestTodayStep() {
+        healthKitManager.getTodayStep { count in
+            print("count: ", count)
+        }
+    }
+}
+
+extension ViewController {
     
     // 산소포화도
     func requestOxygenSaturation() {
@@ -79,11 +107,7 @@ class ViewController: UIViewController {
         }
     }
     
-    func requestStep() {
-        healthKitManager.getStepCountPerDay(beforeDays: 14) { success, date, count in
-
-        }
-    }
+    
     
     func requestExercise() {
         healthKitManager.fetchWeeklyWorkouts { workouts, error in

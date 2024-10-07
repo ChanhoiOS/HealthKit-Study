@@ -197,8 +197,8 @@ extension HealthKitManager {
 }
 
 extension HealthKitManager {
-    func fetchStepCount(completion: @escaping (Double) -> Void) {
-        let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount)!
+    func getTodayStep(completion: @escaping (Double) -> Void) {
+        guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
         let startDate = Calendar.current.startOfDay(for: Date())
         let endDate = Date()
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
@@ -213,8 +213,31 @@ extension HealthKitManager {
         healthStore.execute(query)
     }
     
-    func getStepCountPerDay(beforeDays: Int, finishCompletion: @escaping (Bool, Date?, Double) -> ()) {
-        guard let sampleType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
+    func getTotalStep(completion: @escaping (HKStatistics?, Error?) -> ()) {
+        guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else { return }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (query, result, error) in
+           
+            if let result = result, let sum = result.sumQuantity() {
+                let totalSteps = sum.doubleValue(for: HKUnit.count())
+                completion(result, nil)
+            } else {
+                completion(nil, nil)
+            }
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getStepCountPerDay(beforeDays: Int, completion: @escaping (Bool, Date?, Double) -> ()) {
+        guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
         
         let calendar = Calendar.current
         var dateComponents = DateComponents()
@@ -224,7 +247,7 @@ extension HealthKitManager {
         anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
         let anchorDate = calendar.date(from: anchorComponents)!
         
-        let stepsCumulativeQuery = HKStatisticsCollectionQuery(quantityType: sampleType,
+        let stepsCumulativeQuery = HKStatisticsCollectionQuery(quantityType: stepType,
                                                                quantitySamplePredicate: nil,
                                                                options: .cumulativeSum,
                                                                anchorDate: anchorDate,
@@ -238,16 +261,15 @@ extension HealthKitManager {
                     if let quantity = statistics.sumQuantity() {
                         let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate)  // GMT+9로 변환
                         let steps = quantity.doubleValue(for: HKUnit.count())
-                        print("START DATE: \(koreanStartDate)")
-                        print("STEP COUNT: \(steps)")
-                        finishCompletion(true, koreanStartDate, steps)
+                        
+                        completion(true, koreanStartDate, steps)
                     } else {
-                        finishCompletion(false, nil, -1)
+                        completion(false, nil, -1)
                     }
                 }
             } else {
                 print("STEP COUNT DATA NIL")
-                finishCompletion(false, nil, -1)
+                completion(false, nil, -1)
             }
         }
         
