@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.getAllWorkouts()
+                self.getLimitBloodGlucose()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -144,6 +144,41 @@ extension ViewController {
     }
 }
 
+// MARK: 혈당
+extension ViewController {
+    func getPeriodBloodGlucose() {
+        healthKitManager.getPeriodBloodGlucose { (samples, error) in
+            if let error = error {
+                print("Error fetching blood glucose samples: \(error)")
+                return
+            }
+            
+            for sample in samples ?? [] {
+                let glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
+                let startDate = sample.startDate
+                let endDate = sample.endDate
+                print("Blood Glucose: \(glucose)", "startDate: \(startDate)")
+            }
+        }
+    }
+    
+    func getLimitBloodGlucose() {
+        healthKitManager.getLimitBloodGlucose { samples, error in
+            if let error = error {
+                print("Error fetching blood glucose samples: \(error)")
+                return
+            }
+            
+            for sample in samples ?? [] {
+                let glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
+                let startDate = sample.startDate
+                let endDate = sample.endDate
+                print("Blood Glucose: \(glucose)", "startDate: \(startDate)")
+            }
+        }
+    }
+}
+
 extension ViewController {
     
     // 산소포화도
@@ -201,21 +236,7 @@ extension ViewController {
     
     
 
-    func fetchBloodGlucoseData() {
-        healthKitManager.fetchBloodGlucoseSamples { (samples, error) in
-            if let error = error {
-                print("Error fetching blood glucose samples: \(error)")
-                return
-            }
-            
-            for sample in samples ?? [] {
-                let glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
-                let startDate = sample.startDate
-                let endDate = sample.endDate
-                print("Blood Glucose: \(glucose)", "startDate: \(startDate)")
-            }
-        }
-    }
+    
     
     func fetchBloodPressure() {
         healthKitManager.fetchBloodPressureSamples { (samples, error) in

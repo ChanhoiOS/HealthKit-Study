@@ -243,6 +243,53 @@ extension HealthKitManager {
 }
 
 extension HealthKitManager {
+    func getPeriodBloodGlucose(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        let glucoseType = HKObjectType.quantityType(forIdentifier: .bloodGlucose)!
+        
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
+
+        //let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let query = HKSampleQuery(sampleType: glucoseType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            guard let samples = samples as? [HKQuantitySample], error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            completion(samples, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getLimitBloodGlucose(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        let glucoseType = HKObjectType.quantityType(forIdentifier: .bloodGlucose)!
+        
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let query = HKSampleQuery(sampleType: glucoseType, predicate: predicate, limit: 1, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            guard let samples = samples as? [HKQuantitySample], error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            completion(samples, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+}
+
+extension HealthKitManager {
     func fetchOxygenSaturation(completion: @escaping (HKStatistics?, Error?) -> Void) {
         let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
         
@@ -374,28 +421,7 @@ extension HealthKitManager {
         healthStore.execute(query)
     }
 
-    func fetchBloodGlucoseSamples(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
-        let glucoseType = HKObjectType.quantityType(forIdentifier: .bloodGlucose)!
-        
-        let calendar = Calendar.current
-        let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
-
-        //let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-
-        let query = HKSampleQuery(sampleType: glucoseType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
-            guard let samples = samples as? [HKQuantitySample], error == nil else {
-                completion(nil, error)
-                return
-            }
-            
-            completion(samples, nil)
-        }
-        
-        healthStore.execute(query)
-    }
+    
 }
 
 extension HealthKitManager {
