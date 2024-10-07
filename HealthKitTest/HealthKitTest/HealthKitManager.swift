@@ -179,6 +179,69 @@ extension HealthKitManager {
     }
 }
 
+// MARK: 운동
+extension HealthKitManager {
+    func getAllWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
+        let workoutType = HKObjectType.workoutType()
+        
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -140, to: now) else { return }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        let workoutQuery = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: 2, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            guard let workouts = samples as? [HKWorkout], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(workouts, nil)
+        }
+        
+        healthStore.execute(workoutQuery)
+    }
+    
+    func getWeeklyWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
+            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
+            return
+        }
+
+        let workoutType = HKObjectType.workoutType()
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: .strictStartDate)
+        
+        let query = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { query, samples, error in
+            guard let samples = samples as? [HKWorkout], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(samples, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getCalories(for workout: HKWorkout, completion: @escaping (Double) -> Void) {
+        let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
+        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
+        
+        let query = HKStatisticsQuery(quantityType: energyType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (_, result, error) in
+            var totalCalories = 0.0
+            if let result = result, let sum = result.sumQuantity() {
+                totalCalories = sum.doubleValue(for: HKUnit.kilocalorie())
+                print("운동이름: ",workout.workoutActivityType.name)
+                print("칼로리: ", totalCalories)
+            }
+            completion(totalCalories)
+        }
+        
+        healthStore.execute(query)
+    }
+}
+
 extension HealthKitManager {
     func fetchOxygenSaturation(completion: @escaping (HKStatistics?, Error?) -> Void) {
         let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
@@ -336,56 +399,5 @@ extension HealthKitManager {
 }
 
 extension HealthKitManager {
-    func fetchWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
-        let workoutType = HKObjectType.workoutType()
-        
-        let workoutQuery = HKSampleQuery(sampleType: workoutType, predicate: nil, limit: 0, sortDescriptors: nil) { (query, samples, error) in
-            guard let workouts = samples as? [HKWorkout], error == nil else {
-                completion(nil, error)
-                return
-            }
-            completion(workouts, nil)
-        }
-        
-        healthStore.execute(workoutQuery)
-    }
     
-    func fetchWeeklyWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
-        let calendar = Calendar.current
-        let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
-            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
-            return
-        }
-
-        let workoutType = HKObjectType.workoutType()
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: .strictStartDate)
-        
-        let query = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { query, samples, error in
-            guard let samples = samples as? [HKWorkout], error == nil else {
-                completion(nil, error)
-                return
-            }
-            completion(samples, nil)
-        }
-        
-        healthStore.execute(query)
-    }
-    
-    func fetchCalories(for workout: HKWorkout, completion: @escaping (Double) -> Void) {
-        let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned)!
-        let predicate = HKQuery.predicateForSamples(withStart: workout.startDate, end: workout.endDate, options: .strictStartDate)
-        
-        let query = HKStatisticsQuery(quantityType: energyType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (_, result, error) in
-            var totalCalories = 0.0
-            if let result = result, let sum = result.sumQuantity() {
-                totalCalories = sum.doubleValue(for: HKUnit.kilocalorie())
-                print("운동이름: ",workout.workoutActivityType.name)
-                print("칼로리: ", totalCalories)
-            }
-            completion(totalCalories)
-        }
-        
-        healthStore.execute(query)
-    }
 }

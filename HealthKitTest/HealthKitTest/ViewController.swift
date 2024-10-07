@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.getRecentWeight()
+                self.getAllWorkouts()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -87,6 +87,63 @@ extension ViewController {
     }
 }
 
+// MARK: 운동
+extension ViewController {
+    // 특정 기간 내 운동, 날짜, 칼로리
+    func requestWeeklyWorkout() {
+        healthKitManager.getWeeklyWorkouts { workouts, error in
+            if let error = error {
+                print("Error fetching workouts: \(error.localizedDescription)")
+            } else if let workouts = workouts {
+                let calendar = Calendar.current
+                
+                for workout in workouts {
+                    let workoutName = workout.workoutActivityType.name
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate)
+                    let kcal = workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
+                    
+                    print("운동 종류: ", workoutName)
+                    print("startDate: ", koreanStartDate)
+                    print("endDate: ", koreanEndDate)
+                    print("운동 칼로리: ", kcal)
+                    
+                    //print("duration: ", workout.duration)
+                    //print("운동 칼로리2: ", workout.totalEnergyBurned)
+                    if #available(iOS 16.0, *) {
+                        //self.healthKitManager.fetchCalories(for: workout) { cal in
+                            //print("칼로리: ", cal)
+                        //}
+                    } else {
+                        // Fallback on earlier versions
+                    }
+                }
+            }
+        }
+    }
+    
+    func getAllWorkouts() {
+        // 특정 기간 내 최근 운동 개수 limit
+        healthKitManager.getAllWorkouts { workouts, error in
+            let calendar = Calendar.current
+            
+            if let workouts = workouts {
+                for workout in workouts {
+                    let workoutName = workout.workoutActivityType.name
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate)
+                    let kcal = workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
+                    
+                    print("운동 종류: ", workoutName)
+                    print("startDate: ", koreanStartDate)
+                    print("endDate: ", koreanEndDate)
+                    print("운동 칼로리: ", kcal)
+                }
+            }
+        }
+    }
+}
+
 extension ViewController {
     
     // 산소포화도
@@ -142,36 +199,7 @@ extension ViewController {
     
     
     
-    func requestExercise() {
-        healthKitManager.fetchWeeklyWorkouts { workouts, error in
-            if let error = error {
-                print("Error fetching workouts: \(error.localizedDescription)")
-            } else if let workouts = workouts {
-                let calendar = Calendar.current
-                
-                for workout in workouts {
-                    print("운동 종류: ", workout.workoutActivityType.name)
-                   
-                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate)
-                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate)
-                    
-                    print("startDate: ", koreanStartDate)
-                    print("endDate: ", koreanEndDate)
-                    
-                    //print("duration: ", workout.duration)
-                    print("운동 칼로리: ", workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0)
-                    //print("이전 칼로리2: ", workout.totalEnergyBurned)
-                    if #available(iOS 16.0, *) {
-                        //self.healthKitManager.fetchCalories(for: workout) { cal in
-                            //print("칼로리: ", cal)
-                        //}
-                    } else {
-                        // Fallback on earlier versions
-                    }
-                }
-            }
-        }
-    }
+    
 
     func fetchBloodGlucoseData() {
         healthKitManager.fetchBloodGlucoseSamples { (samples, error) in
