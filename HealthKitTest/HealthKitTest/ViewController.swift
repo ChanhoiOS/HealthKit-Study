@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.getLastBloodPressure()
+                self.reqeustPeriodAvgOxygenSaturation()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -267,23 +267,63 @@ extension ViewController {
 
 // MARK: 산소포화도
 extension ViewController {
-    func requestOxygenSaturation() {
-        healthKitManager.fetchOxygenSaturation { result, error in
-            //print("min: \(String(describing: min))", "max: \(String(describing: max))", "avg: \(String(describing: avg))")
-            let min = result?.minimumQuantity()?.doubleValue(for: HKUnit.percent())
-            let max = result?.maximumQuantity()?.doubleValue(for: HKUnit.percent())
-            let avg = result?.averageQuantity()?.doubleValue(for: HKUnit.percent())
-            
-            print("min: \(String(describing: min))", "max: \(String(describing: max))", "avg: \(String(describing: avg))")
-            print("startDate: \(String(describing: result?.startDate))", print("endDate: \(String(describing: result?.endDate))"))
+    func reqeustAllOxygenSaturation() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getAllOxygenSaturation { samples, error in
+            if let error = error {
+                print("Error fetching blood pressure samples: \(error)")
+                return
+            }
+            if let samples = samples {
+                for sample in samples {
+                    let percent = sample.quantity.doubleValue(for: HKUnit.percent())
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample.endDate)
+                    print("percent: \(percent)", "startData: \(koreanStartDate)", "endDate: \(koreanEndDate)")
+                }
+            }
+        }
+    }
+    
+    func reqeustPeriodAvgOxygenSaturation() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getPeriodAvgOxygenSaturation { samples, error in
+            if let error = error {
+                print("Error fetching blood pressure samples: \(error)")
+                return
+            }
+            if let samples = samples {
+                let min = samples.minimumQuantity()?.doubleValue(for: HKUnit.percent())
+                let max = samples.maximumQuantity()?.doubleValue(for: HKUnit.percent())
+                let avg = samples.averageQuantity()?.doubleValue(for: HKUnit.percent())
+                
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: samples.startDate)
+                let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: samples.endDate)
+                
+                print("min: \(String(describing: min))", "max: \(String(describing: max))", "avg: \(String(describing: avg))")
+                print("startDate: \(String(describing: koreanStartDate))", print("endDate: \(String(describing: koreanEndDate))"))
+            }
         }
     }
     
     func reqeustRecentOxygenSaturation() {
-        healthKitManager.fetchRecentOxygenSaturation { sample, error in
-            print("data: ", sample?.quantity.doubleValue(for: HKUnit.percent()))
-            print("startDate: ", sample?.startDate)
-            print("endDate: ", sample?.endDate)
+        let calendar = Calendar.current
+        
+        healthKitManager.getRecentOxygenSaturation { sample, error in
+            if let error = error {
+                print("Error fetching blood pressure samples: \(error)")
+                return
+            }
+            if let sample = sample?.first {
+                let percent = sample.quantity.doubleValue(for: HKUnit.percent())
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate)
+                let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample.endDate)
+                print("percent: ", percent)
+                print("startDate: ", koreanStartDate)
+                print("endDate: ", koreanEndDate)
+            }
         }
     }
 }

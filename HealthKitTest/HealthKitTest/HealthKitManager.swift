@@ -428,12 +428,39 @@ extension HealthKitManager {
 }
 
 extension HealthKitManager {
-    func fetchOxygenSaturation(completion: @escaping (HKStatistics?, Error?) -> Void) {
+    func getAllOxygenSaturation(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
         let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
         
         let calendar = Calendar.current
         let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -1, to: endDate) else { return }
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: endDate) else { return }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        let query = HKSampleQuery(sampleType: oxygenSaturationType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+
+            guard let sample = samples as? [HKQuantitySample] else {
+                completion(nil, nil)
+                return
+            }
+
+            completion(sample, nil)
+        }
+
+        healthStore.execute(query)
+    }
+    
+    func getPeriodAvgOxygenSaturation(completion: @escaping (HKStatistics?, Error?) -> Void) {
+        let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
+        
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: endDate) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
             
@@ -444,18 +471,12 @@ extension HealthKitManager {
             }
             
             completion(result, nil)
-            
-//            let min = result?.minimumQuantity()?.doubleValue(for: HKUnit.percent())
-//            let max = result?.maximumQuantity()?.doubleValue(for: HKUnit.percent())
-//            let avg = result?.averageQuantity()?.doubleValue(for: HKUnit.percent())
-//            
-//            completion(min, max, avg, nil)
         }
         
         healthStore.execute(query)
     }
     
-    func fetchRecentOxygenSaturation(completion: @escaping (HKQuantitySample?, Error?) -> Void) {
+    func getRecentOxygenSaturation(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
         let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
 
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
@@ -465,7 +486,7 @@ extension HealthKitManager {
                 return
             }
 
-            guard let sample = samples?.first as? HKQuantitySample else {
+            guard let sample = samples as? [HKQuantitySample] else {
                 completion(nil, nil)
                 return
             }
@@ -475,12 +496,4 @@ extension HealthKitManager {
 
         healthStore.execute(query)
     }
-}
-
-
-
-
-
-extension HealthKitManager {
-    
 }
