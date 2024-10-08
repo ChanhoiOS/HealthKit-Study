@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.requestHeartRateMaxMin()
+                self.getLastBloodPressure()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -76,6 +76,18 @@ extension ViewController {
     
     func getRecentWeight() {
         healthKitManager.getRecentWeight { samples, error in
+            if let samples = samples {
+                for sample in samples {
+                    print("weight StartDate: ", sample.startDate)
+                    print("weight EndDate: ", sample.endDate)
+                    print("weight kilo: ", sample.quantity.doubleValue(for: .gramUnit(with: .kilo)))
+                }
+            }
+        }
+    }
+    
+    func getLastWeight() {
+        healthKitManager.getLastWeight { samples, error in
             if let samples = samples {
                 for sample in samples {
                     print("weight StartDate: ", sample.startDate)
@@ -212,13 +224,52 @@ extension ViewController {
     }
 }
 
+// MARK: 혈압
 extension ViewController {
+    func getPeriodBloodPressure() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getPeriodBloodPressure { (samples, error) in
+            if let error = error {
+                print("Error fetching blood pressure samples: \(error)")
+                return
+            }
+            if let samples = samples {
+                for sample in samples {
+                    let mmHg = sample.quantity.doubleValue(for: HKUnit.millimeterOfMercury())
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample.endDate)
+                    print("mmHg: \(mmHg)", "startData: \(koreanStartDate)", "endDate: \(koreanEndDate)")
+                }
+            }
+        }
+    }
     
-    // 산소포화도
+    func getLastBloodPressure() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getLastBloodPressure { (samples, error) in
+            if let error = error {
+                print("Error fetching blood pressure samples: \(error)")
+                return
+            }
+            if let samples = samples {
+                for sample in samples {
+                    let mmHg = sample.quantity.doubleValue(for: HKUnit.millimeterOfMercury())
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate)
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample.endDate)
+                    print("mmHg: \(mmHg)", "startData: \(koreanStartDate)", "endDate: \(koreanEndDate)")
+                }
+            }
+        }
+    }
+}
+
+// MARK: 산소포화도
+extension ViewController {
     func requestOxygenSaturation() {
         healthKitManager.fetchOxygenSaturation { result, error in
             //print("min: \(String(describing: min))", "max: \(String(describing: max))", "avg: \(String(describing: avg))")
-            
             let min = result?.minimumQuantity()?.doubleValue(for: HKUnit.percent())
             let max = result?.maximumQuantity()?.doubleValue(for: HKUnit.percent())
             let avg = result?.averageQuantity()?.doubleValue(for: HKUnit.percent())
@@ -235,29 +286,9 @@ extension ViewController {
             print("endDate: ", sample?.endDate)
         }
     }
-
-    func fetchBloodPressure() {
-        healthKitManager.fetchBloodPressureSamples { (samples, error) in
-            if let error = error {
-                print("Error fetching blood pressure samples: \(error)")
-                return
-            }
-            if let samples = samples {
-                for sample in samples {
-                    let mmHg = sample.quantity.doubleValue(for: HKUnit.millimeterOfMercury())
-                    let startDate = sample.startDate
-                    let endDate = sample.endDate
-                    print("mmHg: \(mmHg)", "startData: \(startDate)", "endDate: \(endDate)")
-                }
-            }
-        }
-    }
-    
-    
 }
 
 extension HKWorkoutActivityType {
-
   /*
    Simple mapping of available workout types to a human readable name.
    */

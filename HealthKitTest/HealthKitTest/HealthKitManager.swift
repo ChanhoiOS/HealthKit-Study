@@ -170,6 +170,30 @@ extension HealthKitManager {
                 
         healthStore.execute(query)
     }
+    
+    func getLastWeight(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        guard let bodyWeightType = HKSampleType.quantityType(forIdentifier: .bodyMass) else {
+            completion(nil, NSError(domain: "HealthKit", code: 1, userInfo: [NSLocalizedDescriptionKey: "Body weight type not available"]))
+            return
+        }
+        
+        let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        let query = HKSampleQuery(sampleType: bodyWeightType,
+                                  predicate: predicate,
+                                  limit: 1,
+                                  sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            guard let samples = samples as? [HKQuantitySample], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(samples, error)
+        }
+                
+        healthStore.execute(query)
+    }
 }
 
 // MARK: 운동
@@ -337,6 +361,73 @@ extension HealthKitManager {
 }
 
 extension HealthKitManager {
+    func getPeriodBloodPressure(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        guard let type = HKQuantityType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.bloodPressure),
+              let systolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureSystolic),
+              let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
+
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
+
+        //let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            if let samples = samples as? [HKCorrelation] {
+                for sample in samples {
+                    if let systolicType = sample.objects(for: systolicType).first as? HKQuantitySample,
+                        let diastolicType = sample.objects(for: diastolicType).first as? HKQuantitySample {
+                        self.hkSamples.append(systolicType)
+                        self.hkSamples.append(diastolicType)
+                    }
+                }
+                
+                completion(self.hkSamples, nil)
+                return
+            } else {
+                completion(nil, error)
+                return
+            }
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getLastBloodPressure(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
+        guard let type = HKQuantityType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.bloodPressure),
+              let systolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureSystolic),
+              let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
+
+        let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+
+        let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: 1, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            if let samples = samples as? [HKCorrelation] {
+                for sample in samples {
+                    if let systolicType = sample.objects(for: systolicType).first as? HKQuantitySample,
+                        let diastolicType = sample.objects(for: diastolicType).first as? HKQuantitySample {
+                        self.hkSamples.append(systolicType)
+                        self.hkSamples.append(diastolicType)
+                    }
+                }
+                
+                completion(self.hkSamples, nil)
+                return
+            } else {
+                completion(nil, error)
+                return
+            }
+        }
+        
+        healthStore.execute(query)
+    }
+}
+
+extension HealthKitManager {
     func fetchOxygenSaturation(completion: @escaping (HKStatistics?, Error?) -> Void) {
         let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
         
@@ -388,44 +479,7 @@ extension HealthKitManager {
 
 
 
-extension HealthKitManager {
-    func fetchBloodPressureSamples(completion: @escaping ([HKQuantitySample]?, Error?) -> Void) {
-        guard let type = HKQuantityType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.bloodPressure),
-              let systolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureSystolic),
-              let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
 
-        let calendar = Calendar.current
-        let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
-
-        
-        //let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
-        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
-
-        let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
-            
-            if let samples = samples as? [HKCorrelation] {
-                for sample in samples {
-                    if let systolicType = sample.objects(for: systolicType).first as? HKQuantitySample,
-                        let diastolicType = sample.objects(for: diastolicType).first as? HKQuantitySample {
-                        self.hkSamples.append(systolicType)
-                        self.hkSamples.append(diastolicType)
-                    }
-                }
-                completion(self.hkSamples, nil)
-                return
-            } else {
-                completion(nil, error)
-                return
-            }
-        }
-        
-        healthStore.execute(query)
-    }
-
-    
-}
 
 extension HealthKitManager {
     
