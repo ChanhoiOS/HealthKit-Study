@@ -21,7 +21,7 @@ class ViewController: UIViewController {
     func requestAuth() {
         healthKitManager.requestAuthorization { (success, error) in
             if success {
-                self.getLimitBloodGlucose()
+                self.requestHeartRateMaxMin()
             } else {
                 print("Authorization failed: \(String(describing: error))")
             }
@@ -179,6 +179,39 @@ extension ViewController {
     }
 }
 
+// MARK: 심박수
+extension ViewController {
+    func requestHeartRate() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getHeartRateData { samples, error in
+            if let samples = samples {
+                for (_, sample) in samples.enumerated() {
+                    if  let heartRateSample = sample as? HKQuantitySample {
+                        let heartRateUnit =  HKUnit.count().unitDivided(by: HKUnit .minute())
+                        let heartRate =  Int(heartRateSample.quantity.doubleValue(for: heartRateUnit))
+                        let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: heartRateSample.startDate)
+                        let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: heartRateSample.endDate)
+                        
+                        print("heartRate: \(heartRate)", "startDate: \(koreanStartDate)", "endDate: \(koreanEndDate)")
+                    }
+                }
+            }
+        }
+    }
+    
+    func requestHeartRateMaxMin() {
+        healthKitManager.getHeartRateMaxMin { result, error in
+            let maxHeartRate = result?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
+            let minHeartRate = result?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
+            let startDate = result?.startDate ?? Date()
+            let endDate = result?.endDate ?? Date()
+            
+            print("maxHeartRate: \(maxHeartRate)", "minHeartRate: \(minHeartRate)", "startDate: \(startDate)", "endDate: \(endDate)")
+        }
+    }
+}
+
 extension ViewController {
     
     // 산소포화도
@@ -202,42 +235,7 @@ extension ViewController {
             print("endDate: ", sample?.endDate)
         }
     }
-    
-    // 심박수
-    func requestHeartRate() {
-        healthKitManager.fetchHeartRateData { samples, error in
-            if let samples = samples {
-                for (_, sample) in samples.enumerated() {
-                    if  let heartRateSample = sample as? HKQuantitySample {
-                        let heartRateUnit =  HKUnit.count().unitDivided(by: HKUnit .minute())
-                        let heartRate =  Int(heartRateSample.quantity.doubleValue(for: heartRateUnit))
-                        let startDate = heartRateSample.startDate
-                        let endDate = heartRateSample.endDate
-                        
-                        print("heartRate: \(heartRate)", "startDate: \(startDate)", "endDate: \(endDate)")
-                    }
-                }
-            }
-        }
-    }
-    
-    func requestRateStatistics() {
-        healthKitManager.fetchHeartRateStatistics { result, error in
-            let maxHeartRate = result?.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
-            let minHeartRate = result?.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min"))
-            let startDate = result?.startDate ?? Date()
-            let endDate = result?.endDate ?? Date()
-            
-            print("maxHeartRate: \(maxHeartRate)", "minHeartRate: \(minHeartRate)", "startDate: \(startDate)", "endDate: \(endDate)")
-        }
-    }
-    
-    
-    
-    
 
-    
-    
     func fetchBloodPressure() {
         healthKitManager.fetchBloodPressureSamples { (samples, error) in
             if let error = error {
