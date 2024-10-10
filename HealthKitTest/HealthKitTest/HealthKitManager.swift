@@ -15,11 +15,6 @@ class HealthKitManager {
     var hkSamples = [HKQuantitySample]()
 
     func requestAuthorization(completion: @escaping (Bool, Error?) -> Void) {
-        guard HKHealthStore.isHealthDataAvailable() else {
-            completion(false, nil)
-            return
-        }
-
         let readTypes: Set<HKObjectType> = [
             HKObjectType.quantityType(forIdentifier: .stepCount)!, // 걸음
             HKObjectType.quantityType(forIdentifier: .bodyMass)!, // 체중
@@ -35,8 +30,21 @@ class HealthKitManager {
         ]
 
         healthStore.requestAuthorization(toShare: nil, read: readTypes) { success , error in
-            completion(success, error)
+            if error != nil {
+                print("=============requestAuthorization error=============")
+                print(error.debugDescription)
+                print("====================================================")
+                completion(false, error)
+                return
+            } else {
+                if success {
+                    completion(true, nil)
+                } else {
+                    completion(false, nil)
+                }
+            }
         }
+        
     }
 }
 
@@ -108,12 +116,11 @@ extension HealthKitManager {
                         
                         completion(true, koreanStartDate, steps)
                     } else {
-                        completion(false, nil, -1)
+                        completion(false, startDate, 0)
                     }
                 }
             } else {
-                print("STEP COUNT DATA NIL")
-                completion(false, nil, -1)
+                completion(false, nil, 0)
             }
         }
         

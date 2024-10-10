@@ -10,23 +10,53 @@ import HealthKit
 
 class ViewController: UIViewController {
     
+    @IBOutlet weak var authBtn: UIButton!
     var healthKitManager = HealthKitManager.shared
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        requestAuth()
     }
     
-    func requestAuth() {
-        healthKitManager.requestAuthorization { (success, error) in
-            if success {
-                self.reqeustPeriodAvgOxygenSaturation()
-            } else {
-                print("Authorization failed: \(String(describing: error))")
+    @IBAction func requestAuth(_ sender: Any) {
+        if HKHealthStore.isHealthDataAvailable() {
+            print("=============헬스데이터 사용 가능 장치=============")
+            
+            healthKitManager.requestAuthorization { (success, error) in
+                print("=============requestAuthorization success=============")
+                print(success)
+                print("======================================================")
+                if success {
+                    
+                } else {
+                    
+                }
             }
+        } else {
+            print("=============헬스데이터 사용 불가 장치=============")
         }
     }
+    
+    @IBAction func checkAuth(_ sender: Any) {
+        let healthKitTypes = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
+        let auth = self.healthKitManager.healthStore.authorizationStatus(for: healthKitTypes)
+        
+        switch auth {
+        case .notDetermined:
+            print("notDetermined")
+        case .sharingAuthorized:
+            print("sharingAuthorized")
+        case .sharingDenied:
+            print("sharingDenied")
+        default:
+            print("default")
+        }
+    }
+    
+    @IBAction func getData(_ sender: Any) {
+        self.getAllWeight()
+    }
+    
 }
 
 //MARK: 걸음수
@@ -65,11 +95,19 @@ extension ViewController {
                 return
             }
             
-            for sample in samples ?? [] {
-                let weight = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
-                let startDate = sample.startDate
-                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: startDate)
-                print("weight: \(weight)", "startData: \(koreanStartDate)")
+            if let samples = samples {
+                if !samples.isEmpty {
+                    for sample in samples {
+                        let weight = sample.quantity.doubleValue(for: .gramUnit(with: .kilo))
+                        let startDate = sample.startDate
+                        let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: startDate)
+                        print("weight: \(weight)", "startData: \(koreanStartDate)")
+                    }
+                } else {
+                    print("sample 데이터 없음")
+                }
+            } else {
+                print("sample 데이터 없음2")
             }
         }
     }
