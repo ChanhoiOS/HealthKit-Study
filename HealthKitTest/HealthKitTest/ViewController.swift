@@ -27,7 +27,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    
+                    self.requestHeartRateEveryDay()
                 } else {
                     
                 }
@@ -38,18 +38,38 @@ class ViewController: UIViewController {
     }
     
     @IBAction func checkAuth(_ sender: Any) {
-        let healthKitTypes = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
-        let auth = self.healthKitManager.healthStore.authorizationStatus(for: healthKitTypes)
+//        let healthKitTypes = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.stepCount)!
+//        let auth = self.healthKitManager.healthStore.authorizationStatus(for: healthKitTypes)
+//        
+//        switch auth {
+//        case .notDetermined:
+//            print("notDetermined")
+//        case .sharingAuthorized:
+//            print("sharingAuthorized")
+//        case .sharingDenied:
+//            print("sharingDenied")
+//        default:
+//            print("default")
+//        }
         
-        switch auth {
-        case .notDetermined:
-            print("notDetermined")
-        case .sharingAuthorized:
-            print("sharingAuthorized")
-        case .sharingDenied:
-            print("sharingDenied")
-        default:
-            print("default")
+        let bodyMass = HKObjectType.quantityType(forIdentifier: .bodyMass)!
+        let readDataTypes: Set<HKObjectType> = [bodyMass]
+
+        healthKitManager.healthStore.getRequestStatusForAuthorization(toShare: [], read: readDataTypes) { (status, error) in
+            switch status {
+            case .unnecessary:
+                print("Authorization already granted.")
+            case .shouldRequest:
+                print("Authorization not yet requested, should request.")
+            case .unknown:
+                print("Unknown authorization status.")
+            @unknown default:
+                print("Unhandled case.")
+            }
+            
+            if let error = error {
+                print("Error occurred: \(error.localizedDescription)")
+            }
         }
     }
     
@@ -63,7 +83,7 @@ class ViewController: UIViewController {
 extension ViewController {
     // HKStatisticsCollectionQuery 를 사용한 날짜별 걸음수
     func requestStep() {
-        healthKitManager.getStepCountPerDay(beforeDays: 14) { success, date, count in
+        healthKitManager.getStepCountPerDay(beforeDays: 2) { success, date, count in
             print("걸은 날짜: ", date)
             print("걸음 수: ", count)
         }
@@ -259,6 +279,18 @@ extension ViewController {
             
             print("maxHeartRate: \(maxHeartRate)", "minHeartRate: \(minHeartRate)", "startDate: \(startDate)", "endDate: \(endDate)")
         }
+    }
+    
+    func requestHeartRateEveryDay() {
+        let calendar = Calendar.current
+        healthKitManager.getHeartRateEveryDay { samples, error in
+            if let samples = samples {
+                for (_, sample) in samples.enumerated() {
+                    print("date: \(sample.date)", "max: \(sample.max)", "min: \(sample.min)", "avg: \(sample.avg)")
+                }
+            }
+        }
+       
     }
 }
 
