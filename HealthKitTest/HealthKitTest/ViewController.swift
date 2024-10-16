@@ -83,7 +83,7 @@ class ViewController: UIViewController {
 extension ViewController {
     // HKStatisticsCollectionQuery 를 사용한 날짜별 걸음수
     func requestStep() {
-        healthKitManager.getStepCountPerDay(beforeDays: 2) { success, date, count in
+        healthKitManager.getStepCountPerDay(beforeDays: 6) { success, date, count in
             print("걸은 날짜: ", date)
             print("걸음 수: ", count)
         }
@@ -393,6 +393,18 @@ extension ViewController {
                 print("percent: ", percent)
                 print("startDate: ", koreanStartDate)
                 print("endDate: ", koreanEndDate)
+            }
+        }
+    }
+    
+    func requestEverydayOxygenSaturation() {
+        let calendar = Calendar.current
+        
+        healthKitManager.getEverydayOxygenSaturation() { samples, error in
+            if let samples = samples {
+                for (_, sample) in samples.enumerated() {
+                    print("date: \(sample.date)", "max: \(sample.max)", "min: \(sample.min)", "avg: \(sample.avg)")
+                }
             }
         }
     }

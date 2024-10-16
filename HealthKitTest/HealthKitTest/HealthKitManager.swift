@@ -385,7 +385,7 @@ extension HealthKitManager {
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
         
         let query = HKStatisticsCollectionQuery(quantityType: heartRateType,
-                                                quantitySamplePredicate: predicate,
+                                                quantitySamplePredicate: nil,
                                                 options: [.discreteMin, .discreteMax, .discreteAverage],
                                                 anchorDate: anchorDate,
                                                 intervalComponents: dateComponents)
@@ -549,6 +549,54 @@ extension HealthKitManager {
             completion(sample, nil)
         }
 
+        healthStore.execute(query)
+    }
+    
+    func getEverydayOxygenSaturation(completion: @escaping ([(date: Date, min: Double, max: Double, avg: Double)]?, Error?) -> Void) {
+        let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
+        
+        let calendar = Calendar.current
+        let timeZone = TimeZone(identifier: "Asia/Seoul") // Setting to KST
+        
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -6, to: endDate) else { return }
+        
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        let anchorDate = calendar.date(from: anchorComponents)!
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        let query = HKStatisticsCollectionQuery(quantityType: oxygenSaturationType,
+                                                quantitySamplePredicate: nil,
+                                                options: [.discreteMin, .discreteMax, .discreteAverage],
+                                                anchorDate: anchorDate,
+                                                intervalComponents: dateComponents)
+        
+        query.initialResultsHandler = { query, result, error in
+            guard let result = result, error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            var heartRateData: [(date: Date, min: Double, max: Double, avg: Double)] = []
+            
+            result.enumerateStatistics(from: startDate, to: endDate) { statistics, _ in
+                let minHeartRate = statistics.minimumQuantity()?.doubleValue(for: HKUnit.percent()) ?? 0.0
+                let maxHeartRate = statistics.maximumQuantity()?.doubleValue(for: HKUnit.percent()) ?? 0.0
+                let avgHeartRate = statistics.averageQuantity()?.doubleValue(for: HKUnit.percent()) ?? 0.0
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate)  // GMT+9로 변환
+                let date = statistics.startDate.addingTimeInterval(TimeInterval(timeZone!.secondsFromGMT(for: statistics.startDate)))
+                
+                heartRateData.append((date: koreanStartDate ?? date, min: minHeartRate, max: maxHeartRate, avg: avgHeartRate))
+            }
+            
+            completion(heartRateData, nil)
+        }
+        
         healthStore.execute(query)
     }
 }
