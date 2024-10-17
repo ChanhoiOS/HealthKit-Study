@@ -27,7 +27,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.getPeriodBloodPressure()
+                    self.requestTotalStep()
                 } else {
                     
                 }
@@ -91,8 +91,12 @@ extension ViewController {
     
     func requestTotalStep() {
         healthKitManager.getTotalStep { sample, error in
-            print("걸음 시작 날짜: ", sample?.startDate)
-            print("걸음 마지막 날짜: ", sample?.endDate)
+            let calendar = Calendar.current
+            
+            let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample?.startDate ?? Date())
+            let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample?.endDate ?? Date())
+            print("걸음 시작 날짜: ", koreanStartDate)
+            print("걸음 마지막 날짜: ", koreanEndDate)
             print("데이터 시작 날짜: ", sample?.sumQuantity()?.doubleValue(for: HKUnit.count()))
         }
     }

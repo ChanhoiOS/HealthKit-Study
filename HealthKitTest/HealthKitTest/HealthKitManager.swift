@@ -53,16 +53,19 @@ extension HealthKitManager {
     func getTodayStep(completion: @escaping (Double) -> Void) {
         guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
         let startDate = Calendar.current.startOfDay(for: Date())
-        let endDate = Date()
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
         
-        let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { _, result, _ in
+        let query = HKStatisticsQuery(quantityType: stepType, 
+                                      quantitySamplePredicate: predicate,
+                                      options: .cumulativeSum) { _, result, _ in
             guard let result = result, let sum = result.sumQuantity() else {
                 completion(0.0)
                 return
             }
+            
             completion(sum.doubleValue(for: HKUnit.count()))
         }
+        
         healthStore.execute(query)
     }
     
@@ -70,8 +73,11 @@ extension HealthKitManager {
         guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
         
         let calendar = Calendar.current
-        let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -2, to: now) else { return }
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 2
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        //guard let startDate = calendar.date(byAdding: .day, value: -2, to: Date()) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
         
