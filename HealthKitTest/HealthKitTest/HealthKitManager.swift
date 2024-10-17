@@ -158,7 +158,7 @@ extension HealthKitManager {
         
         let calendar = Calendar.current
         let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -3000, to: now) else { return }
+        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)

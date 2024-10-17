@@ -104,11 +104,11 @@
 				095F19B52C3BAB1B0022155A /* AppDelegate.swift */,
 				095F19B72C3BAB1B0022155A /* SceneDelegate.swift */,
 				095F19B92C3BAB1B0022155A /* ViewController.swift */,
+				095F19E62C3BACDE0022155A /* HealthKitManager.swift */,
 				095F19BB2C3BAB1B0022155A /* Main.storyboard */,
 				095F19BE2C3BAB1C0022155A /* Assets.xcassets */,
 				095F19C02C3BAB1C0022155A /* LaunchScreen.storyboard */,
 				095F19C32C3BAB1C0022155A /* Info.plist */,
-				095F19E62C3BACDE0022155A /* HealthKitManager.swift */,
 			);
 			path = HealthKitTest;
 			sourceTree = "<group>";
