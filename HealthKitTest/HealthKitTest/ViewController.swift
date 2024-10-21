@@ -27,7 +27,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestTotalStep()
+                    self.requestDistance()
                 } else {
                     
                 }
@@ -104,6 +104,13 @@ extension ViewController {
     func requestTodayStep() {
         healthKitManager.getTodayStep { count in
             print("count: ", count)
+        }
+    }
+    
+    func requestDistance() {
+        healthKitManager.getDistanceCountPerDay(beforeDays: 6) { success, date, distance in
+            print("걸은 날짜: ", date)
+            print("거리: ", distance)
         }
     }
 }

@@ -26,7 +26,9 @@ class HealthKitManager {
             HKObjectType.workoutType(), // 운동
             HKSeriesType.workoutRoute(), // 운동 경로
             HKQuantityType.quantityType(forIdentifier: .heartRate)!, // 심박수
-            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)! // 혈중 산소
+            HKObjectType.quantityType(forIdentifier: .oxygenSaturation)!, // 혈중 산소
+            
+            HKQuantityType.quantityType(forIdentifier: .distanceWalkingRunning)! //걷기 + 달리기 거리
         ]
 
         healthStore.requestAuthorization(toShare: nil, read: readTypes) { success , error in
@@ -121,6 +123,45 @@ extension HealthKitManager {
                         let steps = quantity.doubleValue(for: HKUnit.count())
                         
                         completion(true, koreanStartDate, steps)
+                    } else {
+                        completion(false, startDate, 0)
+                    }
+                }
+            } else {
+                completion(false, nil, 0)
+            }
+        }
+        
+        healthStore.execute(stepsCumulativeQuery)
+    }
+    
+    func getDistanceCountPerDay(beforeDays: Int, completion: @escaping (Bool, Date?, Double) -> ()) {
+        guard let distanceType = HKObjectType.quantityType(forIdentifier: .distanceWalkingRunning) else { return }
+        
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        let anchorDate = calendar.date(from: anchorComponents)!
+        
+        let stepsCumulativeQuery = HKStatisticsCollectionQuery(quantityType: distanceType,
+                                                               quantitySamplePredicate: nil,
+                                                               options: .cumulativeSum,
+                                                               anchorDate: anchorDate,
+                                                               intervalComponents: dateComponents)
+        
+        stepsCumulativeQuery.initialResultsHandler = { query, results, error in
+            if let results = results {
+                let startDate = calendar.date(byAdding: .day, value: -beforeDays, to: Date())
+                let endDate = Date()
+                results.enumerateStatistics(from: startDate!, to: endDate) { (statistics, stop) in
+                    if let quantity = statistics.sumQuantity() {
+                        let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate)  // GMT+9로 변환
+                        let distance = quantity.doubleValue(for: HKUnit.meter())
+                        
+                        completion(true, koreanStartDate, distance)
                     } else {
                         completion(false, startDate, 0)
                     }
