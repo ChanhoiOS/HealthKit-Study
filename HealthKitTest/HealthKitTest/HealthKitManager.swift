@@ -173,6 +173,33 @@ extension HealthKitManager {
         
         healthStore.execute(stepsCumulativeQuery)
     }
+    
+    func getStepsDuringWorkout(startDate: Date, endDate: Date, completion: @escaping (Double?, Error?) -> Void) {
+        // 걸음 수 타입 정의
+        guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return }
+        
+        // 해당 시간대에 걸음 수를 쿼리하기 위한 predicate 설정
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        // 통계 쿼리 생성 (cumulativeSum 옵션 사용)
+        let query = HKStatisticsQuery(quantityType: stepType, quantitySamplePredicate: predicate, options: .cumulativeSum) { (query, result, error) in
+            if let error = error {
+                completion(nil, error)
+                return
+            }
+            
+            // 걸음 수 데이터 처리
+            if let sum = result?.sumQuantity() {
+                let steps = sum.doubleValue(for: HKUnit.count())
+                completion(steps, nil)
+            } else {
+                completion(nil, nil)
+            }
+        }
+        
+        // HealthKit 쿼리 실행
+        healthStore.execute(query)
+    }
 }
 
 // MARK: 몸무게

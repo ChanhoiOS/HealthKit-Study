@@ -27,7 +27,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestDistance()
+                    self.requestWeeklyWorkout()
                 } else {
                     
                 }
@@ -180,24 +180,22 @@ extension ViewController {
                 
                 for workout in workouts {
                     let workoutName = workout.workoutActivityType.name
-                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate)
-                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate)
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate) ?? Date()
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate) ?? Date()
                     let kcal = workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
+                    let distance = workout.totalDistance?.doubleValue(for: HKUnit.meter()) ?? 0.0
                     
                     print("운동 종류: ", workoutName)
-                    print("startDate: ", koreanStartDate)
-                    print("endDate: ", koreanEndDate)
+                    print("운동 시작시간: ", koreanStartDate)
+                    print("운동 종료시간: ", koreanEndDate)
+                    print("운동 거리: ", distance)
                     print("운동 칼로리: ", kcal)
                     
-                    //print("duration: ", workout.duration)
-                    //print("운동 칼로리2: ", workout.totalEnergyBurned)
-                    if #available(iOS 16.0, *) {
-                        //self.healthKitManager.fetchCalories(for: workout) { cal in
-                            //print("칼로리: ", cal)
-                        //}
-                    } else {
-                        // Fallback on earlier versions
-                    }
+//                    if workoutName == "Walking" {
+//                        self.healthKitManager.getStepsDuringWorkout(startDate: workout.startDate, endDate: workout.endDate) { steps, error in
+//                            print("운동 걸음수: ", steps)
+//                        }
+//                    }
                 }
             }
         }
