@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestWalkingWorkout()
+                    self.requestHeartRateHour()
                 } else {
                     
                 }
@@ -344,7 +344,16 @@ extension ViewController {
                 }
             }
         }
-       
+    }
+    
+    func requestHeartRateHour() {
+        healthKitManager.getHeartRateHourly { samples, error in
+            if let samples = samples {
+                for (_, sample) in samples.enumerated() {
+                    print("date: \(sample.date)", "max: \(sample.max)", "min: \(sample.min)", "avg: \(sample.avg)")
+                }
+            }
+        }
     }
 }
 

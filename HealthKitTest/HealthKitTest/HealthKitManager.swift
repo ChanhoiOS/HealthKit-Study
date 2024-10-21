@@ -516,6 +516,60 @@ extension HealthKitManager {
         
         healthStore.execute(query)
     }
+    
+    func getHeartRateHourly(completion: @escaping ([(date: Date, min: Double, max: Double, avg: Double)]?, Error?) -> Void) {
+        let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
+        
+        let calendar = Calendar.current
+        let timeZone = TimeZone(identifier: "Asia/Seoul") // Setting to KST
+        
+        let endDate = Date()
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 2
+        
+        //guard let startDate = calendar.date(byAdding: .day, value: -1, to: endDate) else { return }
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        
+        var dateComponents = DateComponents()
+        dateComponents.hour = 1  // One hour interval
+
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        //let anchorDate = calendar.date(from: anchorComponents)!
+        let anchorDate = calendar.startOfDay(for: startDate)
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        let query = HKStatisticsCollectionQuery(quantityType: heartRateType,
+                                                quantitySamplePredicate: nil,
+                                                options: [.discreteMin, .discreteMax, .discreteAverage],
+                                                anchorDate: anchorDate,
+                                                intervalComponents: dateComponents)
+        
+        query.initialResultsHandler = { query, result, error in
+            guard let result = result, error == nil else {
+                completion(nil, error)
+                return
+            }
+            
+            var heartRateData: [(date: Date, min: Double, max: Double, avg: Double)] = []
+            
+            result.enumerateStatistics(from: startDate, to: endDate) { statistics, _ in
+                let minHeartRate = statistics.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let maxHeartRate = statistics.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let avgHeartRate = statistics.averageQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let date = statistics.startDate.addingTimeInterval(TimeInterval(timeZone!.secondsFromGMT(for: statistics.startDate)))
+                
+                heartRateData.append((date: date, min: minHeartRate, max: maxHeartRate, avg: avgHeartRate))
+            }
+            
+            completion(heartRateData, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+
 }
 
 extension HealthKitManager {
