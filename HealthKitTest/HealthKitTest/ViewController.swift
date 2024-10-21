@@ -13,6 +13,9 @@ class ViewController: UIViewController {
     @IBOutlet weak var authBtn: UIButton!
     var healthKitManager = HealthKitManager.shared
     
+    var distance = [Double]()
+    var count = [Double]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -27,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestWeeklyWorkout()
+                    self.requestWalkingWorkout()
                 } else {
                     
                 }
@@ -111,6 +114,48 @@ extension ViewController {
         healthKitManager.getDistanceCountPerDay(beforeDays: 6) { success, date, distance in
             print("걸은 날짜: ", date)
             print("거리: ", distance)
+        }
+    }
+    
+    func requestWalkingWorkout() {
+        let group = DispatchGroup()
+        healthKitManager.getWalkingWorkouts { workouts, error in
+            if let error = error {
+                print("Error fetching workouts: \(error.localizedDescription)")
+            } else if let workouts = workouts {
+                let calendar = Calendar.current
+                
+                for workout in workouts {
+                    let workoutName = workout.workoutActivityType.name
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate) ?? Date()
+                    let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate) ?? Date()
+                    let kcal = workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
+                    let distance = workout.totalDistance?.doubleValue(for: HKUnit.meter()) ?? 0.0
+                
+                    print("운동 시작시간: ", koreanStartDate)
+                    print("운동 끝 시간: ", koreanEndDate)
+                    print("운동 거리: ", distance)
+                    print("운동 칼로리: ", kcal)
+                    
+                    self.distance.append(distance)
+                }
+                
+                for workout in workouts {
+                    group.enter()
+                    self.healthKitManager.getStepsDuringWorkout(startDate: workout.startDate, endDate: workout.endDate) { steps, error in
+                        if let step = steps {
+                            print("운동 걸음수: ", steps)
+                            self.count.append(step)
+                        }
+                        group.leave()
+                    }
+                }
+                
+                group.notify(queue: .main) {
+                    print("distance: ", self.distance)
+                    print("count: ", self.count)
+                }
+            }
         }
     }
 }

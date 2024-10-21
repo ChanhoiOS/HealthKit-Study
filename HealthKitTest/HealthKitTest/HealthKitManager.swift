@@ -200,6 +200,35 @@ extension HealthKitManager {
         // HealthKit 쿼리 실행
         healthStore.execute(query)
     }
+    
+    func getWalkingWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
+        let calendar = Calendar.current
+        let now = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -140, to: now) else {
+            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
+            return
+        }
+
+        // 운동 유형 필터 (걷기, 달리기)
+        let workoutType = HKObjectType.workoutType()
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: .strictStartDate)
+        
+        // HKWorkoutActivityType을 걷기와 달리기로 필터링
+        let activityPredicate = HKQuery.predicateForWorkouts(with: .walking)
+        
+        let combinedPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [predicate, activityPredicate])
+        
+        let query = HKSampleQuery(sampleType: workoutType, predicate: combinedPredicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { query, samples, error in
+            guard let samples = samples as? [HKWorkout], error == nil else {
+                completion(nil, error)
+                return
+            }
+            completion(samples, nil)
+        }
+        
+        healthStore.execute(query)
+    }
+
 }
 
 // MARK: 몸무게
