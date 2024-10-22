@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestHeartRateHour()
+                    self.requestWeeklyWorkout()
                 } else {
                     
                 }
@@ -233,8 +233,11 @@ extension ViewController {
                     print("운동 종류: ", workoutName)
                     print("운동 시작시간: ", koreanStartDate)
                     print("운동 종료시간: ", koreanEndDate)
-                    print("운동 거리: ", distance)
                     print("운동 칼로리: ", kcal)
+                    
+                    if workoutName == "Walking" {
+                        print("운동 거리: ", distance)
+                    }
                     
 //                    if workoutName == "Walking" {
 //                        self.healthKitManager.getStepsDuringWorkout(startDate: workout.startDate, endDate: workout.endDate) { steps, error in
