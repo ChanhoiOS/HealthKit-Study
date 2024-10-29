@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.reqeustAllOxygenSaturation()
+                    self.requestStep()
                 } else {
                     
                 }
@@ -274,6 +274,8 @@ extension ViewController {
 // MARK: 혈당
 extension ViewController {
     func getPeriodBloodGlucose() {
+        let calendar = Calendar.current
+        
         healthKitManager.getPeriodBloodGlucose { (samples, error) in
             if let error = error {
                 print("Error fetching blood glucose samples: \(error)")
@@ -282,9 +284,9 @@ extension ViewController {
             
             for sample in samples ?? [] {
                 let glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
-                let startDate = sample.startDate
-                let endDate = sample.endDate
-                print("Blood Glucose: \(glucose)", "startDate: \(startDate)")
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate)
+                let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: sample.endDate)
+                print("Blood Glucose: \(glucose)", "startDate: \(koreanStartDate)")
             }
         }
     }
