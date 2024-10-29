@@ -580,7 +580,7 @@ extension HealthKitManager {
 
         let calendar = Calendar.current
         let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -300, to: endDate) else { return }
+        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
 
         //let predicate = HKQuery.predicateForSamples(withStart: Date.distantPast, end: Date(), options: .strictEndDate)
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
@@ -645,7 +645,13 @@ extension HealthKitManager {
         
         let calendar = Calendar.current
         let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -14, to: endDate) else { return }
+        //guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 7
+        
+        //guard let startDate = calendar.date(byAdding: .day, value: -1, to: endDate) else { return }
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
 
@@ -672,7 +678,7 @@ extension HealthKitManager {
         
         let calendar = Calendar.current
         let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -14, to: endDate) else { return }
+        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
         
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
             

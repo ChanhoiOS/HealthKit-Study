@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestWeeklyWorkout()
+                    self.reqeustAllOxygenSaturation()
                 } else {
                     
                 }
