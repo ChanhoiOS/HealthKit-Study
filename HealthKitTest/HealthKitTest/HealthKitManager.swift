@@ -332,10 +332,15 @@ extension HealthKitManager {
     func getWeeklyWorkouts(completion: @escaping ([HKWorkout]?, Error?) -> Void) {
         let calendar = Calendar.current
         let now = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
-            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
-            return
-        }
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 14
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        
+//        guard let startDate = calendar.date(byAdding: .day, value: -14, to: now) else {
+//            completion(nil, NSError(domain: "HealthKitError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Invalid start date"]))
+//            return
+//        }
 
         let workoutType = HKObjectType.workoutType()
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: .strictStartDate)
