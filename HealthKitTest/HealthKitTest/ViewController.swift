@@ -227,12 +227,15 @@ extension ViewController {
                     let workoutName = workout.workoutActivityType.name
                     let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: workout.startDate) ?? Date()
                     let koreanEndDate = calendar.date(byAdding: .hour, value: 9, to: workout.endDate) ?? Date()
+                    let duration = workout.duration
                     let kcal = workout.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
                     let distance = workout.totalDistance?.doubleValue(for: HKUnit.meter()) ?? 0.0
+                    
                     
                     print("운동 종류: ", workoutName)
                     print("운동 시작시간: ", koreanStartDate)
                     print("운동 종료시간: ", koreanEndDate)
+                    print("운동 시간: ", duration)
                     print("운동 칼로리: ", kcal)
                     
                     if workoutName == "Walking" {
