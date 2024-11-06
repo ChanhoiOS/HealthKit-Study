@@ -50,6 +50,55 @@ class HealthKitManager {
     }
 }
 
+extension HealthKitManager {
+    func getStepModel(completion: @escaping ((Step?) -> Void)) {
+        guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
+        
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        let anchorDate = calendar.date(from: anchorComponents)!
+        
+        let stepsCumulativeQuery = HKStatisticsCollectionQuery(quantityType: stepType,
+                                                               quantitySamplePredicate: nil,
+                                                               options: .cumulativeSum,
+                                                               anchorDate: anchorDate,
+                                                               intervalComponents: dateComponents)
+        
+        stepsCumulativeQuery.initialResultsHandler = { query, results, error in
+            if let results = results {
+                let startDate = calendar.date(byAdding: .day, value: -6, to: Date())
+                let endDate = Date()
+                results.enumerateStatistics(from: startDate!, to: endDate) { (statistics, stop) in
+                    if let quantity = statistics.sumQuantity() {
+                        let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate) ?? Date()  // GMT+9로 변환
+                        let count = quantity.doubleValue(for: HKUnit.count())
+                        let stepCount = Int(count)
+                        
+                        let dateFormatter = DateFormatter()
+                        dateFormatter.dateFormat = "yyyy-MM-dd"
+                        let stepDate = dateFormatter.string(from: koreanStartDate)
+                        
+                        let stepModel = Step(count: stepCount, date: stepDate)
+                        completion(stepModel)
+                        
+                    } else {
+                        completion(nil)
+                    }
+                }
+            } else {
+                completion(nil)
+            }
+        }
+        
+        healthStore.execute(stepsCumulativeQuery)
+    }
+}
+
+
 // MARK: 걸음수
 extension HealthKitManager {
     func getTodayStep(completion: @escaping (Double) -> Void) {

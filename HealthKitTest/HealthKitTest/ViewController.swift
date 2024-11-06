@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestWeeklyWorkout()
+                    self.requestStepModel()
                 } else {
                     
                 }
@@ -81,6 +81,32 @@ class ViewController: UIViewController {
     }
     
 }
+
+//MARK: 모델화
+extension ViewController {
+    func requestStepModel() {
+        var stepData = [Step]()
+        var index = 0
+        
+        healthKitManager.getStepModel { model in
+            if let model = model {
+                print("1")
+                stepData.append(model)
+            } else {
+                print("2")
+                stepData.append(Step(count: nil, date: nil))
+            }
+            
+            index += 1
+            
+            if index == 7 {
+                print("stepData: ", stepData)
+            }
+        }
+    }
+}
+
+
 
 //MARK: 걸음수
 extension ViewController {
