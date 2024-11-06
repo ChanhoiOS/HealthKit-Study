@@ -96,6 +96,55 @@ extension HealthKitManager {
         
         healthStore.execute(stepsCumulativeQuery)
     }
+    
+    func getPeriodBloodPressureModel(completion: @escaping (([BloodPressure]?)) -> Void) {
+        guard let type = HKQuantityType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.bloodPressure),
+              let systolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureSystolic),
+              let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
+
+        let calendar = Calendar.current
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        var bloodPressureModel = [BloodPressure]()
+
+        let query = HKSampleQuery(sampleType: type, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            
+            if let samples = samples as? [HKCorrelation] {
+                for sample in samples {
+                    var systolicMmHg = 0
+                    var diastolicMmHg = 0
+                    
+                    if let systolicType = sample.objects(for: systolicType).first as? HKQuantitySample {
+                        systolicMmHg = Int(systolicType.quantity.doubleValue(for: HKUnit.millimeterOfMercury()))
+                    }
+                    
+                    if let diastolicType = sample.objects(for: diastolicType).first as? HKQuantitySample {
+                        diastolicMmHg = Int(diastolicType.quantity.doubleValue(for: HKUnit.millimeterOfMercury()))
+                    }
+                    
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate) ?? Date()
+                    
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd"
+                    let bloodPressureDate = dateFormatter.string(from: koreanStartDate)
+                    
+                    let model = BloodPressure(bloodPressureMin: diastolicMmHg, bloodPressureMax: systolicMmHg, analysisAt: bloodPressureDate)
+                    bloodPressureModel.append(model)
+                }
+                completion(bloodPressureModel)
+                
+            } else {
+                completion(nil)
+                
+            }
+        }
+        
+        healthStore.execute(query)
+    }
 }
 
 

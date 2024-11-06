@@ -93,16 +93,13 @@ struct HeartRate: Codable {
 
 // MARK: - BloodPressure
 struct BloodPressure: Codable {
-    let id: Int?
-    let userID, extensionID: String?
     let bloodPressureMin, bloodPressureMax: Int?
     let analysisAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
-        case bloodPressureMin, bloodPressureMax, analysisAt
+        case bloodPressureMin
+        case bloodPressureMax
+        case analysisAt
     }
 }
 

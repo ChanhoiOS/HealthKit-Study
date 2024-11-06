@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestStepModel()
+                    self.requestBloodPressureModel()
                 } else {
                     
                 }
@@ -85,22 +85,28 @@ class ViewController: UIViewController {
 //MARK: 모델화
 extension ViewController {
     func requestStepModel() {
-        var stepData = [Step]()
+        var stepModel = [Step]()
         var index = 0
         
         healthKitManager.getStepModel { model in
             if let model = model {
-                print("1")
-                stepData.append(model)
+                stepModel.append(model)
             } else {
-                print("2")
-                stepData.append(Step(count: nil, date: nil))
+                stepModel.append(Step(count: nil, date: nil))
             }
             
             index += 1
             
             if index == 7 {
-                print("stepData: ", stepData)
+                print("stepModel: ", stepModel)
+            }
+        }
+    }
+    
+    func requestBloodPressureModel() {
+        healthKitManager.getPeriodBloodPressureModel { model in
+            if let model = model {
+                print("bllodpressureModel: ", model)
             }
         }
     }
