@@ -127,11 +127,10 @@ extension HealthKitManager {
                         diastolicMmHg = Int(diastolicType.quantity.doubleValue(for: HKUnit.millimeterOfMercury()))
                     }
                     
-                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate) ?? Date()
-                    
+                    let startDate = sample.startDate
                     let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd"
-                    let bloodPressureDate = dateFormatter.string(from: koreanStartDate)
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+                    let bloodPressureDate = dateFormatter.string(from: startDate)
                     
                     let model = BloodPressure(bloodPressureMin: diastolicMmHg, bloodPressureMax: systolicMmHg, analysisAt: bloodPressureDate)
                     bloodPressureModel.append(model)
@@ -170,11 +169,11 @@ extension HealthKitManager {
                     percent *= 100
                     let oxygenSaturationPercent = Int(percent)
                     
-                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate) ?? Date()
+                    let startDate = sample.startDate
                     
                     let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd"
-                    let oxygenSaturationDate = dateFormatter.string(from: koreanStartDate)
+                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+                    let oxygenSaturationDate = dateFormatter.string(from: startDate)
                     
                     let model = OxygenSaturation(oxygenSaturation: oxygenSaturationPercent, analysisAt: oxygenSaturationDate)
                     oxygenSaturationModel.append(model)
