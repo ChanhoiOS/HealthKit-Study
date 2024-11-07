@@ -105,16 +105,12 @@ struct BloodPressure: Codable {
 
 // MARK: - OxygenSaturation
 struct OxygenSaturation: Codable {
-    let id: Int?
-    let userID, extensionID: String?
     let oxygenSaturation: Int?
     let analysisAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
-        case oxygenSaturation, analysisAt
+        case oxygenSaturation
+        case analysisAt
     }
 }
 

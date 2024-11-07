@@ -50,6 +50,7 @@ class HealthKitManager {
     }
 }
 
+//MARK: 모델화
 extension HealthKitManager {
     func getStepModel(completion: @escaping ((Step?) -> Void)) {
         guard let stepType = HKObjectType.quantityType(forIdentifier: .stepCount) else { return }
@@ -97,7 +98,7 @@ extension HealthKitManager {
         healthStore.execute(stepsCumulativeQuery)
     }
     
-    func getPeriodBloodPressureModel(completion: @escaping (([BloodPressure]?)) -> Void) {
+    func getBloodPressureModel(completion: @escaping (([BloodPressure]?)) -> Void) {
         guard let type = HKQuantityType.correlationType(forIdentifier: HKCorrelationTypeIdentifier.bloodPressure),
               let systolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureSystolic),
               let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
@@ -143,6 +144,48 @@ extension HealthKitManager {
             }
         }
         
+        healthStore.execute(query)
+    }
+    
+    func getOxygenSaturationModel(completion: @escaping ([OxygenSaturation]?) -> Void) {
+        let oxygenSaturationType = HKQuantityType.quantityType(forIdentifier: .oxygenSaturation)!
+        
+        let calendar = Calendar.current
+        let endDate = Date()
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 7
+        
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierStartDate, ascending: false)
+        
+        var oxygenSaturationModel = [OxygenSaturation]()
+        
+        let query = HKSampleQuery(sampleType: oxygenSaturationType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+           
+            if let samples = samples as? [HKQuantitySample] {
+                for sample in samples {
+                    var percent = sample.quantity.doubleValue(for: HKUnit.percent())
+                    percent *= 100
+                    let oxygenSaturationPercent = Int(percent)
+                    
+                    let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: sample.startDate) ?? Date()
+                    
+                    let dateFormatter = DateFormatter()
+                    dateFormatter.dateFormat = "yyyy-MM-dd"
+                    let oxygenSaturationDate = dateFormatter.string(from: koreanStartDate)
+                    
+                    let model = OxygenSaturation(oxygenSaturation: oxygenSaturationPercent, analysisAt: oxygenSaturationDate)
+                    oxygenSaturationModel.append(model)
+                }
+                
+                completion(oxygenSaturationModel)
+            } else {
+                completion([OxygenSaturation]())
+            }
+        }
+
         healthStore.execute(query)
     }
 }

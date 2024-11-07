@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestBloodPressureModel()
+                    self.requestOxygenSaturationModel()
                 } else {
                     
                 }
@@ -104,10 +104,16 @@ extension ViewController {
     }
     
     func requestBloodPressureModel() {
-        healthKitManager.getPeriodBloodPressureModel { model in
+        healthKitManager.getBloodPressureModel { model in
             if let model = model {
                 print("bllodpressureModel: ", model)
             }
+        }
+    }
+    
+    func requestOxygenSaturationModel() {
+        healthKitManager.getOxygenSaturationModel { model in
+            print("model: ", model)
         }
     }
 }
