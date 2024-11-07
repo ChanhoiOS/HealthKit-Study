@@ -129,7 +129,12 @@ extension HealthKitManager {
                     
                     let startDate = sample.startDate
                     let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+                    if calendar.component(.second, from: startDate) > 0 {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                    } else {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                    }
+                    
                     let bloodPressureDate = dateFormatter.string(from: startDate)
                     
                     let model = BloodPressure(bloodPressureMin: diastolicMmHg, bloodPressureMax: systolicMmHg, analysisAt: bloodPressureDate)
@@ -172,7 +177,11 @@ extension HealthKitManager {
                     let startDate = sample.startDate
                     
                     let dateFormatter = DateFormatter()
-                    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm"
+                    if calendar.component(.second, from: startDate) > 0 {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                    } else {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                    }
                     let oxygenSaturationDate = dateFormatter.string(from: startDate)
                     
                     let model = OxygenSaturation(oxygenSaturation: oxygenSaturationPercent, analysisAt: oxygenSaturationDate)
