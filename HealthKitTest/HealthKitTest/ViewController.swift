@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestOxygenSaturationModel()
+                    self.requestBloodGlucoseModel()
                 } else {
                     
                 }
@@ -113,6 +113,12 @@ extension ViewController {
     
     func requestOxygenSaturationModel() {
         healthKitManager.getOxygenSaturationModel { model in
+            print("model: ", model)
+        }
+    }
+    
+    func requestBloodGlucoseModel() {
+        healthKitManager.getBloodGlucoseModel { model in
             print("model: ", model)
         }
     }

@@ -196,6 +196,56 @@ extension HealthKitManager {
 
         healthStore.execute(query)
     }
+    
+    func getBloodGlucoseModel(completion: @escaping ([BloodGluscose]?) -> Void) {
+        let glucoseType = HKObjectType.quantityType(forIdentifier: .bloodGlucose)!
+        
+        let calendar = Calendar.current
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 7
+        
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
+        let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
+        
+        var bloodGlucoseModel = [BloodGluscose]()
+
+        let query = HKSampleQuery(sampleType: glucoseType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
+            if let samples = samples as? [HKQuantitySample] {
+                for sample in samples {
+                    var glucose = sample.quantity.doubleValue(for: HKUnit(from: "mg/dL"))
+                    let mgDL = Int(glucose)
+                    
+                    let startDate = sample.startDate
+                    
+                    let dateFormatter = DateFormatter()
+                    if calendar.component(.second, from: startDate) > 0 {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                    } else {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                    }
+                    let glucoseDate = dateFormatter.string(from: startDate)
+                    
+                    let model = BloodGluscose(bloodGluscose: mgDL, analysisAt: glucoseDate)
+                    bloodGlucoseModel.append(model)
+                }
+                
+                completion(bloodGlucoseModel)
+            } else {
+                completion([BloodGluscose]())
+            }
+        }
+        
+        healthStore.execute(query)
+    }
 }
 
 

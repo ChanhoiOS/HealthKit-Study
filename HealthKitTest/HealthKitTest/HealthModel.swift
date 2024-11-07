@@ -12,7 +12,7 @@ struct HealthModel: Codable {
     let step: [Step]?
     let weight: [WeightData]?
     let exercise: [Exercise]?
-    let bloodSugar: [BloodSugar]?
+    let bloodGluscose: [BloodGluscose]?
     let heartRate: [HeartRate]?
     let bloodPressure: [BloodPressure]?
     let oxygenSaturation: [OxygenSaturation]?
@@ -62,17 +62,13 @@ struct Exercise: Codable {
 }
 
 // MARK: - BloodSugar
-struct BloodSugar: Codable {
-    let id: Int?
-    let userID, extensionID: String?
-    let bloodSugar: Int?
+struct BloodGluscose: Codable {
+    let bloodGluscose: Int?
     let analysisAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
-        case bloodSugar, analysisAt
+        case bloodGluscose
+        case analysisAt
     }
 }
 
