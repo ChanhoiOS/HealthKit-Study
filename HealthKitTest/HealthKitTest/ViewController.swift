@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestHeartRateModel()
+                    self.requestExerciseModel()
                 } else {
                     
                 }
@@ -125,6 +125,12 @@ extension ViewController {
     
     func requestHeartRateModel() {
         healthKitManager.getHeartRateModel { model in
+            print("model: ", model)
+        }
+    }
+    
+    func requestExerciseModel() {
+        healthKitManager.getExerciseModel { model in
             print("model: ", model)
         }
     }

@@ -46,18 +46,19 @@ struct WeightData: Codable {
 
 // MARK: - Exercise
 struct Exercise: Codable {
-    let id: Int?
-    let userID, extensionID: String?
     let exerciseID: Int?
     let burnedKcal: Double?
-    let startTime, endTime: String?
+    let exerciseHour: Int?
+    let distance: Int?
+    let count: Int?
+    let endTime: String?
 
     enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
         case exerciseID = "exerciseId"
-        case burnedKcal, startTime, endTime
+        case exerciseHour
+        case distance
+        case count
+        case burnedKcal, endTime
     }
 }
 

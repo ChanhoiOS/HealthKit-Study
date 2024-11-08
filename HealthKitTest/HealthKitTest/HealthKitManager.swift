@@ -263,8 +263,6 @@ extension HealthKitManager {
         anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
         let anchorDate = calendar.date(from: anchorComponents)!
         
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
-        
         var heartRateModel = [HeartRate]()
         
         let query = HKStatisticsCollectionQuery(quantityType: heartRateType,
@@ -293,6 +291,52 @@ extension HealthKitManager {
             }
             
             completion(heartRateModel)
+        }
+        
+        healthStore.execute(query)
+    }
+    
+    func getExerciseModel(completion: @escaping ([Exercise]?) -> Void) {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 17
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+
+        let workoutType = HKObjectType.workoutType()
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: now, options: .strictStartDate)
+        
+        var exerciseModel = [Exercise]()
+        
+        let query = HKSampleQuery(sampleType: workoutType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: nil) { query, samples, error in
+            
+            if let samples = samples as? [HKWorkout] {
+                for sample in samples {
+                    let workoutName = sample.workoutActivityType.name
+                    let rawValue = sample.workoutActivityType.rawValue
+                    let exerciseId = Int(rawValue)
+                    let duration = sample.duration
+                    let hour = Int(duration)
+                    let kcal = sample.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
+                    let meter = sample.totalDistance?.doubleValue(for: HKUnit.meter()) ?? 0.0
+                    let distance = Int(meter)
+                    let endDate = sample.endDate
+                    
+                    let dateFormatter = DateFormatter()
+                    if calendar.component(.second, from: startDate) > 0 {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                    } else {
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                    }
+                    let exerciseEndDate = dateFormatter.string(from: endDate)
+                    
+                    let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: distance, count: 0, endTime: exerciseEndDate)
+                    exerciseModel.append(model)
+                }
+                
+                completion(exerciseModel)
+            }
         }
         
         healthStore.execute(query)
