@@ -9,13 +9,12 @@ import Foundation
 
 // MARK: - HealthDataModel
 struct HealthModel: Codable {
-    let step: [Step]?
-    let weight: [WeightData]?
-    let exercise: [Exercise]?
-    let bloodGluscose: [BloodGluscose]?
-    let heartRate: [HeartRate]?
-    let bloodPressure: [BloodPressure]?
-    let oxygenSaturation: [OxygenSaturation]?
+    var step: [Step]?
+    var exercise: [Exercise]?
+    var bloodGluscose: [BloodGluscose]?
+    var heartRate: [HeartRate]?
+    var bloodPressure: [BloodPressure]?
+    var oxygenSaturation: [OxygenSaturation]?
 }
 
 // MARK: - Step
@@ -26,21 +25,6 @@ struct Step: Codable {
     enum CodingKeys: String, CodingKey {
         case count
         case date
-    }
-}
-
-// MARK: - Weight
-struct WeightData: Codable {
-    let id: Int?
-    let userID, extensionID: String?
-    let weight: Double?
-    let analysisAt: String?
-
-    enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
-        case weight, analysisAt
     }
 }
 

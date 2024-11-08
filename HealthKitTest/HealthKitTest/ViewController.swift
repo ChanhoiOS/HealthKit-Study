@@ -12,6 +12,7 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var authBtn: UIButton!
     var healthKitManager = HealthKitManager.shared
+    var healthModel: HealthModel?
     
     var distance = [Double]()
     var count = [Double]()
@@ -19,6 +20,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        healthModel = HealthModel(step: [Step](), exercise: [Exercise](), bloodGluscose: [BloodGluscose](), heartRate: [HeartRate](), bloodPressure: [BloodPressure](), oxygenSaturation: [OxygenSaturation]())
     }
     
     @IBAction func requestAuth(_ sender: Any) {
@@ -30,7 +32,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestExerciseModel()
+                    self.requestStepModel()
                 } else {
                     
                 }
@@ -98,41 +100,62 @@ extension ViewController {
             index += 1
             
             if index == 7 {
-                print("stepModel: ", stepModel)
+                self.healthModel?.step = stepModel
+                
+                self.requestBloodPressureModel()
             }
         }
+        
+      
     }
     
     func requestBloodPressureModel() {
         healthKitManager.getBloodPressureModel { model in
             if let model = model {
-                print("bllodpressureModel: ", model)
+                self.healthModel?.bloodPressure =  model
+                
+                self.requestOxygenSaturationModel()
             }
         }
     }
     
     func requestOxygenSaturationModel() {
         healthKitManager.getOxygenSaturationModel { model in
-            print("model: ", model)
+            self.healthModel?.oxygenSaturation = model
+            
+            self.requestBloodGlucoseModel()
         }
     }
     
     func requestBloodGlucoseModel() {
         healthKitManager.getBloodGlucoseModel { model in
-            print("model: ", model)
+            self.healthModel?.bloodGluscose = model
+            
+            self.requestHeartRateModel()
         }
     }
     
     func requestHeartRateModel() {
         healthKitManager.getHeartRateModel { model in
-            print("model: ", model)
+            self.healthModel?.heartRate = model
+            
+            self.requestExerciseModel()
         }
     }
     
     func requestExerciseModel() {
         healthKitManager.getExerciseModel { model in
-            print("model: ", model)
+            self.healthModel?.exercise = model
+            
+            self.uploadModel()
         }
+    }
+}
+
+extension ViewController {
+    func uploadModel() {
+        
+        NetworkManager.uploadModelData(healthModel ?? HealthModel())
     }
 }
 
