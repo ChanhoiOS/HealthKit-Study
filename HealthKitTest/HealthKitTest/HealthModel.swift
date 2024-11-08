@@ -74,16 +74,16 @@ struct BloodGluscose: Codable {
 
 // MARK: - HeartRate
 struct HeartRate: Codable {
-    let id: Int?
-    let userID, extensionID: String?
-    let heartRateMin, heartRateMax: Int?
+    let heartRateMin: Int?
+    let heartRateMax: Int?
+    let heartRateAvg: Int?
     let analysisAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case id
-        case userID = "userId"
-        case extensionID = "extensionId"
-        case heartRateMin, heartRateMax, analysisAt
+        case heartRateMin
+        case heartRateMax
+        case heartRateAvg
+        case analysisAt
     }
 }
 

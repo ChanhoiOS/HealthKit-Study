@@ -246,6 +246,57 @@ extension HealthKitManager {
         
         healthStore.execute(query)
     }
+    
+    func getHeartRateModel(completion: @escaping ([HeartRate]) -> Void) {
+        let heartRateType = HKQuantityType.quantityType(forIdentifier: .heartRate)!
+                
+        let calendar = Calendar.current
+        var timeZone = TimeZone(identifier: "Asia/Seoul") // Setting to KST
+        
+        let endDate = Date()
+        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
+        
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
+        
+        var anchorComponents = calendar.dateComponents([.day, .month, .year], from: Date())
+        anchorComponents.timeZone = TimeZone(identifier: "Asia/Seoul")
+        let anchorDate = calendar.date(from: anchorComponents)!
+        
+        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: endDate, options: .strictStartDate)
+        
+        var heartRateModel = [HeartRate]()
+        
+        let query = HKStatisticsCollectionQuery(quantityType: heartRateType,
+                                                quantitySamplePredicate: nil,
+                                                options: [.discreteMin, .discreteMax, .discreteAverage],
+                                                anchorDate: anchorDate,
+                                                intervalComponents: dateComponents)
+        
+        query.initialResultsHandler = { query, result, error in
+            result?.enumerateStatistics(from: startDate, to: endDate) { statistics, _ in
+                let minimum = statistics.minimumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let heartRateMin = Int(minimum)
+                let maximum = statistics.maximumQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let heartRateMax = Int(maximum)
+                let average = statistics.averageQuantity()?.doubleValue(for: HKUnit(from: "count/min")) ?? 0.0
+                let heartRateAvg = Int(average)
+                let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate) ?? Date()
+                
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "yyyy-MM-dd"
+
+                let heartRateDate = dateFormatter.string(from: koreanStartDate)
+                
+                let model = HeartRate(heartRateMin: heartRateMin, heartRateMax: heartRateMax, heartRateAvg: heartRateAvg, analysisAt: heartRateDate)
+                heartRateModel.append(model)
+            }
+            
+            completion(heartRateModel)
+        }
+        
+        healthStore.execute(query)
+    }
 }
 
 

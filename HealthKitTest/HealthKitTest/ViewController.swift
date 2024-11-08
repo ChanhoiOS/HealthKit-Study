@@ -30,7 +30,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestBloodGlucoseModel()
+                    self.requestHeartRateModel()
                 } else {
                     
                 }
@@ -119,6 +119,12 @@ extension ViewController {
     
     func requestBloodGlucoseModel() {
         healthKitManager.getBloodGlucoseModel { model in
+            print("model: ", model)
+        }
+    }
+    
+    func requestHeartRateModel() {
+        healthKitManager.getHeartRateModel { model in
             print("model: ", model)
         }
     }
