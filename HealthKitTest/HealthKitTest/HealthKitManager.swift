@@ -103,8 +103,14 @@ extension HealthKitManager {
               let diastolicType = HKObjectType.quantityType(forIdentifier: HKQuantityTypeIdentifier.bloodPressureDiastolic) else { return }
 
         let calendar = Calendar.current
-        let endDate = Date()
-        guard let startDate = calendar.date(byAdding: .day, value: -7, to: endDate) else { return }
+        
+        var startDateComponents = calendar.dateComponents([.year, .month, .day], from: Date())
+        startDateComponents.day! -= 7
+        
+        guard let startDate = calendar.date(from: startDateComponents) else { return }
+        
+        var dateComponents = DateComponents()
+        dateComponents.day = 1
 
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
