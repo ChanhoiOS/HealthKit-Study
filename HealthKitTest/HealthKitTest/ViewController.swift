@@ -32,7 +32,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestStepModel()
+                    self.requestLifeLog("11111")
                 } else {
                     
                 }
@@ -82,6 +82,14 @@ class ViewController: UIViewController {
         self.getAllWeight()
     }
     
+}
+
+extension ViewController {
+    func requestLifeLog(_ memberNo: String) {
+        healthModel?.membNo = memberNo
+        
+        requestStepModel()
+    }
 }
 
 //MARK: 모델화

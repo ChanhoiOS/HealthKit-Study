@@ -9,6 +9,7 @@ import Foundation
 
 // MARK: - HealthDataModel
 struct HealthModel: Codable {
+    var membNo: String?
     var step: [Step]?
     var exercise: [Exercise]?
     var bloodGluscose: [BloodGluscose]?
