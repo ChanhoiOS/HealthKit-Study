@@ -34,14 +34,12 @@ struct Exercise: Codable {
     let burnedKcal: Double?
     let exerciseHour: Int?
     let distance: Int?
-    let count: Int?
     let endTime: String?
 
     enum CodingKeys: String, CodingKey {
         case exerciseID = "exerciseId"
         case exerciseHour
         case distance
-        case count
         case burnedKcal, endTime
     }
 }

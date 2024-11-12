@@ -327,8 +327,8 @@ extension HealthKitManager {
                     let duration = sample.duration
                     let hour = Int(duration)
                     let kcal = sample.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
-                    let meter = sample.totalDistance?.doubleValue(for: HKUnit.meter()) ?? 0.0
-                    let distance = Int(meter)
+                    let meter = sample.totalDistance?.doubleValue(for: HKUnit.meter())
+                    
                     let endDate = sample.endDate
                     
                     let dateFormatter = DateFormatter()
@@ -339,8 +339,14 @@ extension HealthKitManager {
                     }
                     let exerciseEndDate = dateFormatter.string(from: endDate)
                     
-                    let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: distance, count: 0, endTime: exerciseEndDate)
-                    exerciseModel.append(model)
+                    if let meter = meter {
+                        let distance = Int(meter)
+                        let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: distance, endTime: exerciseEndDate)
+                        exerciseModel.append(model)
+                    } else {
+                        let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: nil, endTime: exerciseEndDate)
+                        exerciseModel.append(model)
+                    }
                 }
                 
                 completion(exerciseModel)

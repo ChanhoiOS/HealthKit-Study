@@ -12,7 +12,7 @@ class NetworkManager {
     static func uploadModelData(_ healthData: HealthModel) {
         let url = "https://daddl-dev.lottesrc.com/m/lifelog/put"
         
-        let session = "NGE2OGU0MjctMWE0Ny00YzhkLWEwYTEtYjZmYmU4MWViNTVj"
+        let session = "OTc2MzBhZWQtOTZiMy00NzJlLWE3ZGEtODExYzhhOTg5ZjRh"
         
         let headers: HTTPHeaders = [
             "Content-Type": "application/json",
