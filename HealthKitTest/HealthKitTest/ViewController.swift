@@ -93,8 +93,6 @@ extension ViewController {
         healthKitManager.getStepModel { model in
             if let model = model {
                 stepModel.append(model)
-            } else {
-                stepModel.append(Step(count: nil, date: nil))
             }
             
             index += 1
