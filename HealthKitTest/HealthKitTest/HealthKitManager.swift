@@ -71,9 +71,9 @@ extension HealthKitManager {
         
         stepsCumulativeQuery.initialResultsHandler = { query, results, error in
             if let results = results {
-                let startDate = calendar.date(byAdding: .day, value: -6, to: Date())
-                let endDate = Date()
-                results.enumerateStatistics(from: startDate!, to: endDate) { (statistics, stop) in
+                let startDate = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+                let endDate = calendar.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+                results.enumerateStatistics(from: startDate, to: endDate) { (statistics, stop) in
                     if let quantity = statistics.sumQuantity() {
                         let koreanStartDate = calendar.date(byAdding: .hour, value: 9, to: statistics.startDate) ?? Date()  // GMT+9로 변환
                         let count = quantity.doubleValue(for: HKUnit.count())
@@ -85,7 +85,6 @@ extension HealthKitManager {
                         
                         let stepModel = Step(count: stepCount, date: stepDate)
                         completion(stepModel)
-                        
                     } else {
                         completion(nil)
                     }
@@ -130,9 +129,9 @@ extension HealthKitManager {
                     let startDate = sample.startDate
                     let dateFormatter = DateFormatter()
                     if calendar.component(.second, from: startDate) > 0 {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
                     } else {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000"
                     }
                     
                     let bloodPressureDate = dateFormatter.string(from: startDate)
@@ -178,9 +177,9 @@ extension HealthKitManager {
                     
                     let dateFormatter = DateFormatter()
                     if calendar.component(.second, from: startDate) > 0 {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
                     } else {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000"
                     }
                     let oxygenSaturationDate = dateFormatter.string(from: startDate)
                     
@@ -228,9 +227,9 @@ extension HealthKitManager {
                     
                     let dateFormatter = DateFormatter()
                     if calendar.component(.second, from: startDate) > 0 {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
                     } else {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000"
                     }
                     let glucoseDate = dateFormatter.string(from: startDate)
                     
@@ -287,7 +286,10 @@ extension HealthKitManager {
                 let heartRateDate = dateFormatter.string(from: koreanStartDate)
                 
                 let model = HeartRate(heartRateMin: heartRateMin, heartRateMax: heartRateMax, heartRateAvg: heartRateAvg, analysisAt: heartRateDate)
-                heartRateModel.append(model)
+                
+                if heartRateAvg > 0 {
+                    heartRateModel.append(model)
+                }
             }
             
             completion(heartRateModel)
@@ -325,9 +327,9 @@ extension HealthKitManager {
                     
                     let dateFormatter = DateFormatter()
                     if calendar.component(.second, from: startDate) > 0 {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS"
                     } else {
-                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000'Z'"
+                        dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000"
                     }
                     let exerciseEndDate = dateFormatter.string(from: endDate)
                     
