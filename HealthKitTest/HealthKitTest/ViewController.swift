@@ -32,7 +32,7 @@ class ViewController: UIViewController {
                 print(success)
                 print("======================================================")
                 if success {
-                    self.requestLifeLog("11111")
+                    self.requestLifeLog("test007")
                 } else {
                     
                 }
@@ -85,8 +85,8 @@ class ViewController: UIViewController {
 }
 
 extension ViewController {
-    func requestLifeLog(_ memberNo: String) {
-        healthModel?.membNo = memberNo
+    func requestLifeLog(_ userId: String) {
+        healthModel?.userId = userId
         
         requestStepModel()
     }
@@ -107,12 +107,9 @@ extension ViewController {
             
             if index == 7 {
                 self.healthModel?.step = stepModel
-                
                 self.requestBloodPressureModel()
             }
         }
-        
-      
     }
     
     func requestBloodPressureModel() {
