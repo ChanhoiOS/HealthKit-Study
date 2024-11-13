@@ -27,13 +27,8 @@ class NetworkManager {
         let paramDic = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any]
         
         AF.request(url, method: .post, parameters: paramDic, encoding: JSONEncoding.default, headers: headers)
-            .responseJSON { response in
-                switch response.result {
-                case .success(let value):
-                    print("Success: \(value)")
-                case .failure(let error):
-                    print("Error: \(error)")
-                }
+            .responseDecodable(of: HealthResponseModel.self) { response in
+                print("response: ", response)
             }
     }
 }
