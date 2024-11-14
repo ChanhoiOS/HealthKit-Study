@@ -9,8 +9,7 @@ import Foundation
 
 struct HealthResponseModel: Codable {
     let timestamp, status: Int?
-    let error: String?
-    let message, path: String?
+    let error, message, path: String?
     let data: HealthResponseModelData?
 }
 
@@ -24,5 +23,5 @@ struct HealthResponseModelData: Codable {
 // MARK: - DataData
 struct DataData: Codable {
     let result: Bool?
-    let createdAt: String?
+    let message, createdAt: String?
 }

@@ -11,75 +11,23 @@ import Foundation
 struct HealthModel: Codable {
     var userId: String?
     var providerType: String = "APPLE_HEALTH"
-    var step: [Step]?
-    var exercise: [Exercise]?
-    var bloodGluscose: [BloodGluscose]?
-    var heartRate: [HeartRate]?
-    var bloodPressure: [BloodPressure]?
-    var oxygenSaturation: [OxygenSaturation]?
-}
-
-// MARK: - Step
-struct Step: Codable {
-    let count: Int?
-    let date: String?
-
-    enum CodingKeys: String, CodingKey {
-        case count
-        case date
-    }
-}
-
-// MARK: - Exercise
-struct Exercise: Codable {
-    let exerciseID: Int?
-    let burnedKcal: Double?
-    let exerciseHour: Int?
-    let distance: Int?
-    let endTime: String?
-
-    enum CodingKeys: String, CodingKey {
-        case exerciseID = "exerciseId"
-        case exerciseHour
-        case distance
-        case burnedKcal, endTime
-    }
-}
-
-// MARK: - BloodSugar
-struct BloodGluscose: Codable {
-    let bloodGluscose: Int?
-    let analysisAt: String?
-
-    enum CodingKeys: String, CodingKey {
-        case bloodGluscose
-        case analysisAt
-    }
-}
-
-// MARK: - HeartRate
-struct HeartRate: Codable {
-    let heartRateMin: Int?
-    let heartRateMax: Int?
-    let heartRateAvg: Int?
-    let analysisAt: String?
-
-    enum CodingKeys: String, CodingKey {
-        case heartRateMin
-        case heartRateMax
-        case heartRateAvg
-        case analysisAt
-    }
+    var bloodPressures: [BloodPressure]?
+    var oxygenSaturations: [OxygenSaturation]?
+    var bloodSugars: [BloodSugar]?
+    var steps: [Step]?
+    var heartRates: [HeartRate]?
+    var exercises: [Exercise]?
 }
 
 // MARK: - BloodPressure
 struct BloodPressure: Codable {
-    let bloodPressureMin, bloodPressureMax: Int?
+    let bloodPressureMax: Int?
+    let bloodPressureMin: Int?
     let analysisAt: String?
 
     enum CodingKeys: String, CodingKey {
-        case bloodPressureMin
         case bloodPressureMax
+        case bloodPressureMin
         case analysisAt
     }
 }
@@ -95,3 +43,58 @@ struct OxygenSaturation: Codable {
     }
 }
 
+// MARK: - BloodSugar
+struct BloodSugar: Codable {
+    let bloodSugar: Int?
+    let analysisAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case bloodSugar
+        case analysisAt
+    }
+}
+
+// MARK: - Step
+struct Step: Codable {
+    let step: Int?
+    let date: String?
+
+    enum CodingKeys: String, CodingKey {
+        case step
+        case date
+    }
+}
+
+// MARK: - HeartRate
+struct HeartRate: Codable {
+    let heartRateAvg: Int?
+    let heartRateMax: Int?
+    let heartRateMin: Int?
+    let analysisAt: String?
+
+    enum CodingKeys: String, CodingKey {
+        case heartRateAvg
+        case heartRateMax
+        case heartRateMin
+        case analysisAt
+    }
+}
+
+// MARK: - Exercise
+struct Exercise: Codable {
+    let exerciseId: String?
+    let startTime: String?
+    let endTime: String?
+    let exerciseTime: Int?
+    let burnedKcal: Double?
+    let distance: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case exerciseId
+        case startTime
+        case endTime
+        case exerciseTime
+        case distance
+        case burnedKcal
+    }
+}

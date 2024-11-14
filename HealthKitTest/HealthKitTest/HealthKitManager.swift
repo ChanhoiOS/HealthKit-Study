@@ -83,7 +83,7 @@ extension HealthKitManager {
                         dateFormatter.dateFormat = "yyyy-MM-dd"
                         let stepDate = dateFormatter.string(from: koreanStartDate)
                         
-                        let stepModel = Step(count: stepCount, date: stepDate)
+                        let stepModel = Step(step: stepCount, date: stepDate)
                         completion(stepModel)
                     } else {
                         completion(nil)
@@ -142,7 +142,7 @@ extension HealthKitManager {
                     
                     let bloodPressureDate = dateFormatter.string(from: startDate)
                     
-                    let model = BloodPressure(bloodPressureMin: diastolicMmHg, bloodPressureMax: systolicMmHg, analysisAt: bloodPressureDate)
+                    let model = BloodPressure(bloodPressureMax: systolicMmHg, bloodPressureMin: diastolicMmHg, analysisAt: bloodPressureDate)
                     bloodPressureModel.append(model)
                 }
                 completion(bloodPressureModel)
@@ -202,7 +202,7 @@ extension HealthKitManager {
         healthStore.execute(query)
     }
     
-    func getBloodGlucoseModel(completion: @escaping ([BloodGluscose]?) -> Void) {
+    func getBloodGlucoseModel(completion: @escaping ([BloodSugar]?) -> Void) {
         let glucoseType = HKObjectType.quantityType(forIdentifier: .bloodGlucose)!
         
         let calendar = Calendar.current
@@ -221,7 +221,7 @@ extension HealthKitManager {
         let predicate = HKQuery.predicateForSamples(withStart: startDate, end: Date(), options: .strictEndDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
         
-        var bloodGlucoseModel = [BloodGluscose]()
+        var bloodSugarModel = [BloodSugar]()
 
         let query = HKSampleQuery(sampleType: glucoseType, predicate: predicate, limit: HKObjectQueryNoLimit, sortDescriptors: [sortDescriptor]) { (query, samples, error) in
             if let samples = samples as? [HKQuantitySample] {
@@ -239,13 +239,13 @@ extension HealthKitManager {
                     }
                     let glucoseDate = dateFormatter.string(from: startDate)
                     
-                    let model = BloodGluscose(bloodGluscose: mgDL, analysisAt: glucoseDate)
-                    bloodGlucoseModel.append(model)
+                    let model = BloodSugar(bloodSugar: mgDL, analysisAt: glucoseDate)
+                    bloodSugarModel.append(model)
                 }
                 
-                completion(bloodGlucoseModel)
+                completion(bloodSugarModel)
             } else {
-                completion([BloodGluscose]())
+                completion([BloodSugar]())
             }
         }
         
@@ -291,7 +291,7 @@ extension HealthKitManager {
 
                 let heartRateDate = dateFormatter.string(from: koreanStartDate)
                 
-                let model = HeartRate(heartRateMin: heartRateMin, heartRateMax: heartRateMax, heartRateAvg: heartRateAvg, analysisAt: heartRateDate)
+                let model = HeartRate(heartRateAvg: heartRateAvg, heartRateMax: heartRateMax, heartRateMin: heartRateMin, analysisAt: heartRateDate)
                 
                 if heartRateAvg > 0 {
                     heartRateModel.append(model)
@@ -323,13 +323,12 @@ extension HealthKitManager {
                 for sample in samples {
                     let workoutName = sample.workoutActivityType.name
                     let rawValue = sample.workoutActivityType.rawValue
-                    let exerciseId = Int(rawValue)
+                    let exerciseId = String(rawValue)
+                    let startDate = sample.startDate
+                    let endDate = sample.endDate
                     let duration = sample.duration
-                    let hour = Int(duration)
                     let kcal = sample.totalEnergyBurned?.doubleValue(for: HKUnit.kilocalorie()) ?? 0.0
                     let meter = sample.totalDistance?.doubleValue(for: HKUnit.meter())
-                    
-                    let endDate = sample.endDate
                     
                     let dateFormatter = DateFormatter()
                     if calendar.component(.second, from: startDate) > 0 {
@@ -337,14 +336,17 @@ extension HealthKitManager {
                     } else {
                         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:00.000"
                     }
-                    let exerciseEndDate = dateFormatter.string(from: endDate)
+                    
+                    let startTime = dateFormatter.string(from: startDate)
+                    let endTime = dateFormatter.string(from: endDate)
+                    let exerciseTime = Int(duration / 60)
                     
                     if let meter = meter {
                         let distance = Int(meter)
-                        let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: distance, endTime: exerciseEndDate)
+                        let model = Exercise(exerciseId: exerciseId, startTime: startTime, endTime: endTime, exerciseTime: exerciseTime, burnedKcal: kcal, distance: distance)
                         exerciseModel.append(model)
                     } else {
-                        let model = Exercise(exerciseID: exerciseId, burnedKcal: kcal, exerciseHour: hour, distance: nil, endTime: exerciseEndDate)
+                        let model = Exercise(exerciseId: exerciseId, startTime: startTime, endTime: endTime, exerciseTime: exerciseTime, burnedKcal: kcal, distance: nil)
                         exerciseModel.append(model)
                     }
                 }
